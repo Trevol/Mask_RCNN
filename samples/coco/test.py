@@ -1,3 +1,6 @@
-import my_vis as vis
+import numpy as np
 
-print( [i for i in range(5)] )
+#(375, 500, 4)
+masks = np.load('./samples/coco/masks.npy')
+
+print(masks)

@@ -58,3 +58,4 @@ venv/
 ENV/
 *.mp4
 *.jpg
+*.npy
