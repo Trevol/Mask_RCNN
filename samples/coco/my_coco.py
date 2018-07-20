@@ -94,7 +94,7 @@ class_names = ['BG', 'person', 'bicycle', 'car', 'motorcycle', 'airplane',
 COCO_SAMPLES_PATH = os.path.join(ROOT_DIR, "samples/coco")
 imageNames = [
     "plain_persons.jpg", 
-    #"persons.jpg"
+    "persons.jpg"
     ]
 
 
