@@ -22,4 +22,4 @@ wget https://github.com/matterport/Mask_RCNN/releases/download/v2.1/balloon_data
 unzip balloon_dataset.zip "balloon/*.*"
 
 cd balloon
-mv train .. && mv val .. && cd .. rm -r balloon
+mv train .. && mv val .. && cd .. && rm -r balloon
