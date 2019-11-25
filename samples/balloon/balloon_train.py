@@ -13,9 +13,11 @@ class BalloonConfig(Config):
     # Give the configuration a recognizable name
     NAME = "balloon"
 
+    BACKBONE = 'resnet50'
+
     # We use a GPU with 12GB memory, which can fit two images.
     # Adjust down if you use a smaller GPU.
-    IMAGES_PER_GPU = 2
+    IMAGES_PER_GPU = 1
 
     # Number of classes (including background)
     NUM_CLASSES = 1 + 1  # Background + balloon
@@ -119,7 +121,7 @@ class BalloonDataset(utils.Dataset):
 
 def train(model):
     """Train the model."""
-    dataset = os.path.join(ROOT_DIR, 'datasets/balloon')
+    dataset = os.path.join(ROOT_DIR, './dataset')
     # Training dataset.
     dataset_train = BalloonDataset()
     dataset_train.load_balloon(dataset, "train")
