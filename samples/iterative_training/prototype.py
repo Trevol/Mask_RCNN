@@ -152,26 +152,34 @@ class IterativeTrainer():
     modelDir = './logs'
     trainingConfig = ShapesConfig()
 
+    def __init__(self):
+        self._trainableModel = None
+        self._inferenceModel = None
+
     def findLastWeights(self):
         return MaskRCNNEx.findLastWeightsInModelDir(self.modelDir, self.trainingConfig.NAME.lower())
 
-    def makeTrainableModel(self):
-        model = MaskRCNNEx(mode='training', config=self.trainingConfig, model_dir=self.modelDir)
-        lastWeights = model.findLastWeights()
-        if lastWeights:
-            model.load_weights(lastWeights)
-        else:
-            # starts with coco weights
-            model.load_weights('mask_rcnn_coco.h5', by_name=True,
-                               exclude=["mrcnn_class_logits", "mrcnn_bbox_fc",
-                                        "mrcnn_bbox", "mrcnn_mask"])
-        return model
+    def getTrainableModel(self, loadWeights):
+        if not self._trainableModel:
+            self._trainableModel = MaskRCNNEx(mode='training', config=self.trainingConfig, model_dir=self.modelDir)
+        if loadWeights:
+            lastWeights = self.findLastWeights()
+            if lastWeights:
+                self._trainableModel.load_weights(lastWeights)
+            else:
+                # starts with coco weights
+                exclude = ["mrcnn_class_logits", "mrcnn_bbox_fc", "mrcnn_bbox", "mrcnn_mask"]
+                self._trainableModel.load_weights('mask_rcnn_coco.h5', by_name=True, exclude=exclude)
 
-    def makeInferenceModel(self, weights):
-        pass
+        return self._trainableModel
+
+    def getInferenceModel(self):
+        if not self._inferenceModel:
+            self._inferenceModel = MaskRCNNEx(mode='inference', config=InferenceConfig(), model_dir=self.modelDir)
+        return self._inferenceModel
 
     def train(self):
-        model = self.makeTrainableModel()
+        trainableModel = self.getTrainableModel(loadWeights=True)
 
         trainDataset = ShapesDataset()
         trainDataset.load_shapes(50, self.trainingConfig.IMAGE_SHAPE[0], self.trainingConfig.IMAGE_SHAPE[1])
@@ -180,28 +188,21 @@ class IterativeTrainer():
         validationDataset.load_shapes(5, self.trainingConfig.IMAGE_SHAPE[0], self.trainingConfig.IMAGE_SHAPE[1])
         validationDataset.prepare()
 
-        # enter training loop:
-        model.train(trainDataset, validationDataset, self.trainingConfig.LEARNING_RATE, epochs=model.epoch + 1,
-                    layers='heads')
-        model.train(trainDataset, validationDataset, self.trainingConfig.LEARNING_RATE / 10, epochs=model.epoch + 1,
-                    layers='all')
-
-        # lastWeights = MaskRCNNEx.findLastWeightsInModelDir('./logs', ShapesConfig.NAME)
-        return model.findLastWeights()
+        trainableModel.train(trainDataset, validationDataset, self.trainingConfig.LEARNING_RATE,
+                             epochs=trainableModel.epoch + 1, layers='heads')
+        trainableModel.train(trainDataset, validationDataset, self.trainingConfig.LEARNING_RATE / 10,
+                             epochs=trainableModel.epoch + 1, layers='all')
 
     def visualizePredictability(self):
-
         weights = self.findLastWeights()
         print('Visualizing weights: ', weights)
-        inferenceModel = MaskRCNNEx(mode='inference', config=InferenceConfig(), model_dir='./logs')
+        inferenceModel = self.getInferenceModel()
         inferenceModel.load_weights(weights, by_name=True)
 
         imageHeight, imageWidth = self.trainingConfig.IMAGE_SHAPE[0:2]
         hSpacer = np.full([imageHeight, 10, 3], 255, np.uint8)
 
         while True:
-            cv2.destroyWindow('Predictability')
-
             dataset = ShapesDataset()
             dataset.load_shapes(5, imageHeight, imageWidth)
             dataset.prepare()
@@ -217,21 +218,31 @@ class IterativeTrainer():
                 vSpacer = np.full([10, rowImage.shape[1], 3], 255, np.uint8)
                 rows.extend([rowImage, vSpacer])
             total = np.vstack(rows)
-            cv2.imshow('Predictability', Utils.rgb2bgr(total))
+            cv2.imshow(f'Predictability', Utils.rgb2bgr(total))
+            cv2.setWindowTitle('Predictability', f'Predictability {weights.split("/")[-1]}')
 
             while True:
                 key = cv2.waitKey()
                 if key == 27:
+                    cv2.destroyWindow('Predictability')
                     return 'esc'
                 if key == ord('t'):  # require training
+                    cv2.destroyWindow('Predictability')
                     return 'train'
                 if key == ord('n'):  # next visualization
+                    cv2.destroyWindow('Predictability')
                     break
 
     def trainingLoop(self, startWithVisualize):
-        if not startWithVisualize:
+        if startWithVisualize:
+            interactionResult = self.visualizePredictability()
+            if interactionResult == 'esc':
+                return
+        while True:
             self.train()
-        self.visualizePredictability()
+            interactionResult = self.visualizePredictability()
+            if interactionResult == 'esc':
+                break
 
 
 def parseArgs():
