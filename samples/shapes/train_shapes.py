@@ -1,4 +1,3 @@
-
 # coding: utf-8
 
 # # Mask R-CNN - Train on Shapes Dataset
@@ -32,8 +31,6 @@ from mrcnn import utils
 import mrcnn.model as modellib
 from mrcnn import visualize
 from mrcnn.model import log
-
-get_ipython().run_line_magic('matplotlib', 'inline')
 
 # Directory to save logs and trained model
 MODEL_DIR = os.path.join(ROOT_DIR, "logs")
@@ -83,7 +80,8 @@ class ShapesConfig(Config):
 
     # use small validation steps since the epoch is small
     VALIDATION_STEPS = 5
-    
+
+
 config = ShapesConfig()
 config.display()
 
@@ -101,21 +99,8 @@ def get_ax(rows=1, cols=1, size=8):
     Change the default size attribute to control the size
     of rendered images
     """
-    _, ax = plt.subplots(rows, cols, figsize=(size*cols, size*rows))
+    _, ax = plt.subplots(rows, cols, figsize=(size * cols, size * rows))
     return ax
-
-
-# ## Dataset
-# 
-# Create a synthetic dataset
-# 
-# Extend the Dataset class and add a method to load the shapes dataset, `load_shapes()`, and override the following methods:
-# 
-# * load_image()
-# * load_mask()
-# * image_reference()
-
-# In[4]:
 
 
 class ShapesDataset(utils.Dataset):
@@ -174,11 +159,11 @@ class ShapesDataset(utils.Dataset):
         count = len(shapes)
         mask = np.zeros([info['height'], info['width'], count], dtype=np.uint8)
         for i, (shape, _, dims) in enumerate(info['shapes']):
-            mask[:, :, i:i+1] = self.draw_shape(mask[:, :, i:i+1].copy(),
-                                                shape, dims, 1)
+            mask[:, :, i:i + 1] = self.draw_shape(mask[:, :, i:i + 1].copy(),
+                                                  shape, dims, 1)
         # Handle occlusions
         occlusion = np.logical_not(mask[:, :, -1]).astype(np.uint8)
-        for i in range(count-2, -1, -1):
+        for i in range(count - 2, -1, -1):
             mask[:, :, i] = mask[:, :, i] * occlusion
             occlusion = np.logical_and(occlusion, np.logical_not(mask[:, :, i]))
         # Map class names to class IDs.
@@ -190,13 +175,13 @@ class ShapesDataset(utils.Dataset):
         # Get the center x, y and the size s
         x, y, s = dims
         if shape == 'square':
-            cv2.rectangle(image, (x-s, y-s), (x+s, y+s), color, -1)
+            cv2.rectangle(image, (x - s, y - s), (x + s, y + s), color, -1)
         elif shape == "circle":
             cv2.circle(image, (x, y), s, color, -1)
         elif shape == "triangle":
-            points = np.array([[(x, y-s),
-                                (x-s/math.sin(math.radians(60)), y+s),
-                                (x+s/math.sin(math.radians(60)), y+s),
+            points = np.array([[(x, y - s),
+                                (x - s / math.sin(math.radians(60)), y + s),
+                                (x + s / math.sin(math.radians(60)), y + s),
                                 ]], dtype=np.int32)
             cv2.fillPoly(image, points, color)
         return image
@@ -219,7 +204,7 @@ class ShapesDataset(utils.Dataset):
         y = random.randint(buffer, height - buffer - 1)
         x = random.randint(buffer, width - buffer - 1)
         # Size
-        s = random.randint(buffer, height//4)
+        s = random.randint(buffer, height // 4)
         return shape, color, (x, y, s)
 
     def random_image(self, height, width):
@@ -238,7 +223,7 @@ class ShapesDataset(utils.Dataset):
             shape, color, dims = self.random_shape(height, width)
             shapes.append((shape, color, dims))
             x, y, s = dims
-            boxes.append([y-s, x-s, y+s, x+s])
+            boxes.append([y - s, x - s, y + s, x + s])
         # Apply non-max suppression wit 0.3 threshold to avoid
         # shapes covering each other
         keep_ixs = utils.non_max_suppression(np.array(boxes), np.arange(N), 0.3)
@@ -246,19 +231,13 @@ class ShapesDataset(utils.Dataset):
         return bg_color, shapes
 
 
-# In[5]:
-
-
-# Training dataset
 dataset_train = ShapesDataset()
 dataset_train.load_shapes(500, config.IMAGE_SHAPE[0], config.IMAGE_SHAPE[1])
 dataset_train.prepare()
 
-# Validation dataset
 dataset_val = ShapesDataset()
 dataset_val.load_shapes(50, config.IMAGE_SHAPE[0], config.IMAGE_SHAPE[1])
 dataset_val.prepare()
-
 
 # In[6]:
 
@@ -270,7 +249,6 @@ for image_id in image_ids:
     mask, class_ids = dataset_train.load_mask(image_id)
     visualize.display_top_masks(image, mask, class_ids, dataset_train.class_names)
 
-
 # ## Ceate Model
 
 # In[7]:
@@ -279,7 +257,6 @@ for image_id in image_ids:
 # Create model in training mode
 model = modellib.MaskRCNN(mode="training", config=config,
                           model_dir=MODEL_DIR)
-
 
 # In[8]:
 
@@ -294,12 +271,11 @@ elif init_with == "coco":
     # are different due to the different number of classes
     # See README for instructions to download the COCO weights
     model.load_weights(COCO_MODEL_PATH, by_name=True,
-                       exclude=["mrcnn_class_logits", "mrcnn_bbox_fc", 
+                       exclude=["mrcnn_class_logits", "mrcnn_bbox_fc",
                                 "mrcnn_bbox", "mrcnn_mask"])
 elif init_with == "last":
     # Load the last model you trained and continue training
     model.load_weights(model.find_last(), by_name=True)
-
 
 # ## Training
 # 
@@ -315,11 +291,10 @@ elif init_with == "last":
 # Passing layers="heads" freezes all layers except the head
 # layers. You can also pass a regular expression to select
 # which layers to train by name pattern.
-model.train(dataset_train, dataset_val, 
-            learning_rate=config.LEARNING_RATE, 
-            epochs=1, 
+model.train(dataset_train, dataset_val,
+            learning_rate=config.LEARNING_RATE,
+            epochs=1,
             layers='heads')
-
 
 # In[ ]:
 
@@ -328,9 +303,9 @@ model.train(dataset_train, dataset_val,
 # Passing layers="all" trains all layers. You can also 
 # pass a regular expression to select which layers to
 # train by name pattern.
-model.train(dataset_train, dataset_val, 
+model.train(dataset_train, dataset_val,
             learning_rate=config.LEARNING_RATE / 10,
-            epochs=2, 
+            epochs=2,
             layers="all")
 
 
@@ -353,10 +328,11 @@ class InferenceConfig(ShapesConfig):
     GPU_COUNT = 1
     IMAGES_PER_GPU = 1
 
+
 inference_config = InferenceConfig()
 
 # Recreate the model in inference mode
-model = modellib.MaskRCNN(mode="inference", 
+model = modellib.MaskRCNN(mode="inference",
                           config=inference_config,
                           model_dir=MODEL_DIR)
 
@@ -369,14 +345,13 @@ model_path = model.find_last()
 print("Loading weights from ", model_path)
 model.load_weights(model_path, by_name=True)
 
-
 # In[ ]:
 
 
 # Test on a random image
 image_id = random.choice(dataset_val.image_ids)
-original_image, image_meta, gt_class_id, gt_bbox, gt_mask =    modellib.load_image_gt(dataset_val, inference_config, 
-                           image_id, use_mini_mask=False)
+original_image, image_meta, gt_class_id, gt_bbox, gt_mask = modellib.load_image_gt(dataset_val, inference_config,
+                                                                                   image_id, use_mini_mask=False)
 
 log("original_image", original_image)
 log("image_meta", image_meta)
@@ -384,9 +359,8 @@ log("gt_class_id", gt_class_id)
 log("gt_bbox", gt_bbox)
 log("gt_mask", gt_mask)
 
-visualize.display_instances(original_image, gt_bbox, gt_mask, gt_class_id, 
+visualize.display_instances(original_image, gt_bbox, gt_mask, gt_class_id,
                             dataset_train.class_names, figsize=(8, 8))
-
 
 # In[ ]:
 
@@ -394,9 +368,8 @@ visualize.display_instances(original_image, gt_bbox, gt_mask, gt_class_id,
 results = model.detect([original_image], verbose=1)
 
 r = results[0]
-visualize.display_instances(original_image, r['rois'], r['masks'], r['class_ids'], 
+visualize.display_instances(original_image, r['rois'], r['masks'], r['class_ids'],
                             dataset_val.class_names, r['scores'], ax=get_ax())
-
 
 # ## Evaluation
 
@@ -409,16 +382,15 @@ image_ids = np.random.choice(dataset_val.image_ids, 10)
 APs = []
 for image_id in image_ids:
     # Load image and ground truth data
-    image, image_meta, gt_class_id, gt_bbox, gt_mask =        modellib.load_image_gt(dataset_val, inference_config,
-                               image_id, use_mini_mask=False)
+    image, image_meta, gt_class_id, gt_bbox, gt_mask = modellib.load_image_gt(dataset_val, inference_config,
+                                                                              image_id, use_mini_mask=False)
     molded_images = np.expand_dims(modellib.mold_image(image, inference_config), 0)
     # Run object detection
     results = model.detect([image], verbose=0)
     r = results[0]
     # Compute AP
-    AP, precisions, recalls, overlaps =        utils.compute_ap(gt_bbox, gt_class_id, gt_mask,
-                         r["rois"], r["class_ids"], r["scores"], r['masks'])
+    AP, precisions, recalls, overlaps = utils.compute_ap(gt_bbox, gt_class_id, gt_mask,
+                                                         r["rois"], r["class_ids"], r["scores"], r['masks'])
     APs.append(AP)
-    
-print("mAP: ", np.mean(APs))
 
+print("mAP: ", np.mean(APs))
