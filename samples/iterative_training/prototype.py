@@ -44,6 +44,11 @@ class ShapesConfig(Config):
     VALIDATION_STEPS = 5
 
 
+class InferenceConfig(ShapesConfig):
+    GPU_COUNT = 1
+    IMAGES_PER_GPU = 1
+
+
 class MaskRCNNEx(MaskRCNN):
     def findLastWeights(self):
         """Finds the last checkpoint file of the last trained model in the
@@ -75,92 +80,8 @@ class MaskRCNNEx(MaskRCNN):
 
 
 class Utils:
-    def f(self):
-        pass
-
-
-class IterativeTrainer():
-    modelDir = './logs'
-    trainingConfig = ShapesConfig()
-
-    def findLastWeights(self):
-        return MaskRCNNEx.findLastWeightsInModelDir(self.modelDir, self.trainingConfig.NAME.lower())
-
-    def makeTrainableModel(self):
-        model = MaskRCNNEx(mode='training', config=self.trainingConfig, model_dir=self.modelDir)
-        lastWeights = model.findLastWeights()
-        if lastWeights:
-            model.load_weights(lastWeights)
-        else:
-            # starts with coco weights
-            model.load_weights('mask_rcnn_coco.h5', by_name=True,
-                               exclude=["mrcnn_class_logits", "mrcnn_bbox_fc",
-                                        "mrcnn_bbox", "mrcnn_mask"])
-        return model
-
-    def makeInferenceModel(self, weights):
-        pass
-
-    def train(self):
-        model = self.makeTrainableModel()
-
-        trainDataset = ShapesDataset()
-        trainDataset.load_shapes(50, self.trainingConfig.IMAGE_SHAPE[0], self.trainingConfig.IMAGE_SHAPE[1])
-        trainDataset.prepare()
-        validationDataset = ShapesDataset()
-        validationDataset.load_shapes(5, self.trainingConfig.IMAGE_SHAPE[0], self.trainingConfig.IMAGE_SHAPE[1])
-        validationDataset.prepare()
-
-        # enter training loop:
-        model.train(trainDataset, validationDataset, self.trainingConfig.LEARNING_RATE, epochs=model.epoch + 1,
-                    layers='heads')
-        model.train(trainDataset, validationDataset, self.trainingConfig.LEARNING_RATE / 10, epochs=model.epoch + 1,
-                    layers='all')
-
-        # lastWeights = MaskRCNNEx.findLastWeightsInModelDir('./logs', ShapesConfig.NAME)
-        return model.findLastWeights()
-
-    def visualizePredictability(self):
-        class InferenceConfig(ShapesConfig):
-            GPU_COUNT = 1
-            IMAGES_PER_GPU = 1
-
-        weights = self.findLastWeights()
-        print('Visualizing weights: ', weights)
-        inferenceModel = MaskRCNNEx(mode='inference', config=InferenceConfig(), model_dir='./logs')
-        inferenceModel.load_weights(weights, by_name=True)
-
-        imageHeight, imageWidth = self.trainingConfig.IMAGE_SHAPE[0:2]
-        hSpacer = np.full([imageHeight, 10, 3], 255, np.uint8)
-
-        while True:
-            dataset = ShapesDataset()
-            dataset.load_shapes(5, imageHeight, imageWidth)
-            dataset.prepare()
-
-            rows = []
-            for imageId in dataset.image_ids:
-                image = dataset.load_image(imageId)
-                r = inferenceModel.detect([image])[0]
-                boxes, masks, classIds, scores = r['rois'], r['masks'], r['class_ids'], r['scores']
-
-                rowImage = self.display_instances(image, boxes, masks, classIds, scores)
-                rowImage = np.hstack([image, hSpacer, rowImage])
-                vSpacer = np.full([10, rowImage.shape[1], 3], 255, np.uint8)
-                rows.extend([rowImage, vSpacer])
-            total = np.vstack(rows)
-            cv2.imshow('Predictability', self.rgb2bgr(total))
-
-            while True:
-                key = cv2.waitKey()
-                if key == 27:
-                    return 'esc'
-                if key == ord('t'):  # require training
-                    return 'train'
-                if key == ord('n'):  # next visualization
-                    break
-
-    def display_instances(self, image, boxes, masks, class_ids, scores):
+    @staticmethod
+    def display_instances(image, boxes, masks, class_ids, scores):
         """
         boxes: [num_instance, (y1, x1, y2, x2, class_id)] in image coordinates.
         masks: [height, width, num_instances]
@@ -222,8 +143,90 @@ class IterativeTrainer():
 
         return masked_image.astype(np.uint8)
 
-    def rgb2bgr(self, rgb):
+    @staticmethod
+    def rgb2bgr(rgb):
         return cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
+
+
+class IterativeTrainer():
+    modelDir = './logs'
+    trainingConfig = ShapesConfig()
+
+    def findLastWeights(self):
+        return MaskRCNNEx.findLastWeightsInModelDir(self.modelDir, self.trainingConfig.NAME.lower())
+
+    def makeTrainableModel(self):
+        model = MaskRCNNEx(mode='training', config=self.trainingConfig, model_dir=self.modelDir)
+        lastWeights = model.findLastWeights()
+        if lastWeights:
+            model.load_weights(lastWeights)
+        else:
+            # starts with coco weights
+            model.load_weights('mask_rcnn_coco.h5', by_name=True,
+                               exclude=["mrcnn_class_logits", "mrcnn_bbox_fc",
+                                        "mrcnn_bbox", "mrcnn_mask"])
+        return model
+
+    def makeInferenceModel(self, weights):
+        pass
+
+    def train(self):
+        model = self.makeTrainableModel()
+
+        trainDataset = ShapesDataset()
+        trainDataset.load_shapes(50, self.trainingConfig.IMAGE_SHAPE[0], self.trainingConfig.IMAGE_SHAPE[1])
+        trainDataset.prepare()
+        validationDataset = ShapesDataset()
+        validationDataset.load_shapes(5, self.trainingConfig.IMAGE_SHAPE[0], self.trainingConfig.IMAGE_SHAPE[1])
+        validationDataset.prepare()
+
+        # enter training loop:
+        model.train(trainDataset, validationDataset, self.trainingConfig.LEARNING_RATE, epochs=model.epoch + 1,
+                    layers='heads')
+        model.train(trainDataset, validationDataset, self.trainingConfig.LEARNING_RATE / 10, epochs=model.epoch + 1,
+                    layers='all')
+
+        # lastWeights = MaskRCNNEx.findLastWeightsInModelDir('./logs', ShapesConfig.NAME)
+        return model.findLastWeights()
+
+    def visualizePredictability(self):
+
+        weights = self.findLastWeights()
+        print('Visualizing weights: ', weights)
+        inferenceModel = MaskRCNNEx(mode='inference', config=InferenceConfig(), model_dir='./logs')
+        inferenceModel.load_weights(weights, by_name=True)
+
+        imageHeight, imageWidth = self.trainingConfig.IMAGE_SHAPE[0:2]
+        hSpacer = np.full([imageHeight, 10, 3], 255, np.uint8)
+
+        while True:
+            cv2.destroyWindow('Predictability')
+
+            dataset = ShapesDataset()
+            dataset.load_shapes(5, imageHeight, imageWidth)
+            dataset.prepare()
+
+            rows = []
+            for imageId in dataset.image_ids:
+                image = dataset.load_image(imageId)
+                r = inferenceModel.detect([image])[0]
+                boxes, masks, classIds, scores = r['rois'], r['masks'], r['class_ids'], r['scores']
+
+                rowImage = Utils.display_instances(image, boxes, masks, classIds, scores)
+                rowImage = np.hstack([image, hSpacer, rowImage])
+                vSpacer = np.full([10, rowImage.shape[1], 3], 255, np.uint8)
+                rows.extend([rowImage, vSpacer])
+            total = np.vstack(rows)
+            cv2.imshow('Predictability', Utils.rgb2bgr(total))
+
+            while True:
+                key = cv2.waitKey()
+                if key == 27:
+                    return 'esc'
+                if key == ord('t'):  # require training
+                    return 'train'
+                if key == ord('n'):  # next visualization
+                    break
 
     def trainingLoop(self, startWithVisualize):
         if not startWithVisualize:
