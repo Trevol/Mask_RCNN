@@ -94,7 +94,7 @@ class IterativeTrainer():
                 if key == ord('t'):  # require training
                     cv2.destroyWindow(WND_NAME)
                     return 'train'
-                if key == ord('n'):  # next visualization
+                if key in [ord('n'), ord(' '), 13]:  # next visualization on n, space or enter
                     cv2.destroyWindow('Predictability')
                     break
 
