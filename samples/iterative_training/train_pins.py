@@ -36,7 +36,7 @@ def main():
 
 def main():
     labels, imageAnnotations = CvatAnnotation.parse('1_TestSegmentation.xml')
-    PinsDataset()
+    # PinsDataset()
 
 
 main()
