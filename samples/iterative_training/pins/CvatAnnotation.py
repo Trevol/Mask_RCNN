@@ -12,14 +12,15 @@ class CvatAnnotation:
             self.label = label
             self.points = points
 
-    @classmethod
-    def _parsePoints(cls, pointsString: str):
+    @staticmethod
+    def _parsePoints(pointsString: str):
         # 546.47,391.58;555.35,383.94
         points = []
         for xy in pointsString.split(';'):
             x, y = xy.split(',')
             point = int(round(float(x))), int(round(float(y)))
             points.append(point)
+        return points
 
     @classmethod
     def parse(cls, annotationFile):
