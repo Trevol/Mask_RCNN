@@ -6,10 +6,8 @@ import random
 
 
 class PinsDataset(utils.Dataset):
-    """Generates the shapes synthetic dataset. The dataset consists of simple
-    shapes (triangles, squares, circles) placed randomly on a blank surface.
-    The images are generated on the fly. No file access required.
-    """
+    def __init__(self, imagesDir, imageAnnotations):
+        super(PinsDataset, self).__init__()
 
     def load_shapes(self, count, height, width):
         """Generate the requested number of synthetic images.
