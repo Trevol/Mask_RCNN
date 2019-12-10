@@ -3,127 +3,66 @@ import numpy as np
 import cv2
 import math
 import random
+import os
+import skimage.io
+import skimage.color
 
 
 class PinsDataset(utils.Dataset):
-    def __init__(self, imagesDir, imageAnnotations):
-        super(PinsDataset, self).__init__()
-
-    def load_shapes(self, count, height, width):
-        """Generate the requested number of synthetic images.
-        count: number of images to generate.
-        height, width: the size of the generated images.
+    @staticmethod
+    def loadImageByPath(imagePath):
+        """Load the specified image and return a [H,W,3] Numpy array.
         """
-        # Add classes
-        self.add_class("shapes", 1, "pin")
+        # Load image
+        image = skimage.io.imread(imagePath)
+        # If grayscale. Convert to RGB for consistency.
+        if image.ndim != 3:
+            image = skimage.color.gray2rgb(image)
+        # If has an alpha channel, remove it for consistency
+        if image.shape[-1] == 4:
+            image = image[..., :3]
+        return image
 
-        # Add images
-        # Generate random specifications of images (i.e. color and
-        # list of shapes sizes and locations). This is more compact than
-        # actual images. Images are generated on the fly in load_image().
-        for i in range(count):
-            bg_color, shapes = self.random_image(height, width)
-            self.add_image("shapes", image_id=i, path=None,
-                           width=width, height=height,
-                           bg_color=bg_color, shapes=shapes)
+    @staticmethod
+    def makeMask(size, polygons, labels):
+        polygons = [p for p in polygons if p.label in labels]
+        assert len(polygons) > 0
+        masks = [np.zeros(size, np.uint8) for _ in range(len(polygons))]
+        for i, p in enumerate(polygons):
+            cv2.fillPoly(masks[i], np.array([p.points]), 1)
+            # cv2.polylines(masks[i], np.array([p.points]), True, 1)
+        mask = np.dstack(masks).astype(np.bool)
+        # Map class names to class IDs.
+        class_ids = np.array([labels.index(p.label) + 1 for p in polygons])
+        return mask, class_ids.astype(np.int32)
+
+    def __init__(self, labels, imagesDir, imageAnnotations):
+        super(PinsDataset, self).__init__()
+        self.labels = labels
+        for i, label in enumerate(labels):
+            self.add_class("pins", i, label)
+
+        for i, imageAnnotation in enumerate(imageAnnotations):
+            imagePath = os.path.join(imagesDir, imageAnnotation.name)
+            image = self.loadImageByPath(imagePath)
+            mask = self.makeMask(image.shape[:2], imageAnnotation.polygons, labels)
+
+            self.add_image('pins', i, imagePath, annotation=imageAnnotation, image=image, mask=mask)
+        self.prepare()
 
     def load_image(self, image_id):
-        """Generate an image from the specs of the given image ID.
-        Typically this function loads the image from a file, but
-        in this case it generates the image on the fly from the
-        specs in image_info.
-        """
-        info = self.image_info[image_id]
-        bg_color = np.array(info['bg_color']).reshape([1, 1, 3])
-        image = np.ones([info['height'], info['width'], 3], dtype=np.uint8)
-        image = image * bg_color.astype(np.uint8)
-        for shape, color, dims in info['shapes']:
-            image = self.draw_shape(image, shape, dims, color)
-        return image
+        return self.image_info[image_id]['image']
 
     def image_reference(self, image_id):
         """Return the shapes data of the image."""
         info = self.image_info[image_id]
-        if info["source"] == "shapes":
-            return info["shapes"]
+        if info["source"] == "pins":
+            return info["pins"]
         else:
             super(self.__class__).image_reference(self, image_id)
 
+    def image_annotation(self, image_id):
+        return self.image_info[image_id]['annotation']
+
     def load_mask(self, image_id):
-        """Generate instance masks for shapes of the given image ID.
-        """
-        info = self.image_info[image_id]
-        shapes = info['shapes']
-        count = len(shapes)
-        mask = np.zeros([info['height'], info['width'], count], dtype=np.uint8)
-        for i, (shape, _, dims) in enumerate(info['shapes']):
-            mask[:, :, i:i + 1] = self.draw_shape(mask[:, :, i:i + 1].copy(),
-                                                  shape, dims, 1)
-        # Handle occlusions
-        occlusion = np.logical_not(mask[:, :, -1]).astype(np.uint8)
-        for i in range(count - 2, -1, -1):
-            mask[:, :, i] = mask[:, :, i] * occlusion
-            occlusion = np.logical_and(occlusion, np.logical_not(mask[:, :, i]))
-        # Map class names to class IDs.
-        class_ids = np.array([self.class_names.index(s[0]) for s in shapes])
-        return mask.astype(np.bool), class_ids.astype(np.int32)
-
-    def draw_shape(self, image, shape, dims, color):
-        """Draws a shape from the given specs."""
-        # Get the center x, y and the size s
-        x, y, s = dims
-        if shape == 'square':
-            cv2.rectangle(image, (x - s, y - s), (x + s, y + s), color, -1)
-        elif shape == "circle":
-            cv2.circle(image, (x, y), s, color, -1)
-        elif shape == "triangle":
-            points = np.array([[(x, y - s),
-                                (x - s / math.sin(math.radians(60)), y + s),
-                                (x + s / math.sin(math.radians(60)), y + s),
-                                ]], dtype=np.int32)
-            cv2.fillPoly(image, points, color)
-        return image
-
-    def random_shape(self, height, width):
-        """Generates specifications of a random shape that lies within
-        the given height and width boundaries.
-        Returns a tuple of three valus:
-        * The shape name (square, circle, ...)
-        * Shape color: a tuple of 3 values, RGB.
-        * Shape dimensions: A tuple of values that define the shape size
-                            and location. Differs per shape type.
-        """
-        # Shape
-        shape = random.choice(["square", "circle", "triangle"])
-        # Color
-        color = tuple([random.randint(0, 255) for _ in range(3)])
-        # Center x, y
-        buffer = 20
-        y = random.randint(buffer, height - buffer - 1)
-        x = random.randint(buffer, width - buffer - 1)
-        # Size
-        s = random.randint(buffer, height // 4)
-        return shape, color, (x, y, s)
-
-    def random_image(self, height, width):
-        """Creates random specifications of an image with multiple shapes.
-        Returns the background color of the image and a list of shape
-        specifications that can be used to draw the image.
-        """
-        # Pick random background color
-        bg_color = np.array([random.randint(0, 255) for _ in range(3)])
-        # Generate a few random shapes and record their
-        # bounding boxes
-        shapes = []
-        boxes = []
-        N = random.randint(1, 4)
-        for _ in range(N):
-            shape, color, dims = self.random_shape(height, width)
-            shapes.append((shape, color, dims))
-            x, y, s = dims
-            boxes.append([y - s, x - s, y + s, x + s])
-        # Apply non-max suppression wit 0.3 threshold to avoid
-        # shapes covering each other
-        keep_ixs = utils.non_max_suppression(np.array(boxes), np.arange(N), 0.3)
-        shapes = [s for i, s in enumerate(shapes) if i in keep_ixs]
-        return bg_color, shapes
+        return self.image_info[image_id]['mask']

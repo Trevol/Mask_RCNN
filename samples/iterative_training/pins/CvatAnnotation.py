@@ -3,9 +3,9 @@ import xml.etree.ElementTree as ET
 
 class CvatAnnotation:
     class ImageAnnotation:
-        def __init__(self, name, polygons=[]):
+        def __init__(self, name, polygons=None):
             self.name = name
-            self.polygons = polygons
+            self.polygons = [] if polygons is None else polygons
 
     class PolygonAnnotation:
         def __init__(self, label, points):
@@ -33,17 +33,22 @@ class CvatAnnotation:
 
         imageAnnotations = []
         for imageEl in annotations.findall('image'):
-            imageAnnotation = CvatAnnotation.ImageAnnotation(imageEl.get('name'))
-            imageAnnotations.append(imageAnnotation)
+            imagePolygonAnnotations = []
             for polygonEl in imageEl.findall('polygon'):
                 label = polygonEl.get('label')
                 points = polygonEl.get('points')
                 points = cls._parsePoints(points)
                 polygonAnnotation = CvatAnnotation.PolygonAnnotation(label, points)
-                imageAnnotation.polygons.append(polygonAnnotation)
+                imagePolygonAnnotations.append(polygonAnnotation)
+            imageAnnotation = CvatAnnotation.ImageAnnotation(imageEl.get('name'), imagePolygonAnnotations)
+            imageAnnotations.append(imageAnnotation)
 
         return labels, imageAnnotations
 
 
 if __name__ == '__main__':
-    CvatAnnotation.parse('1_TestSegmentation.xml')
+    labels, imageAnnotations = CvatAnnotation.parse('1_TestSegmentation.xml')
+    assert len(imageAnnotations) == 5
+    assert imageAnnotations[0].polygons is not imageAnnotations[1].polygons
+    assert len(imageAnnotations[0].polygons) == 6
+    assert len(imageAnnotations[1].polygons) == 12
