@@ -34,7 +34,9 @@ def main_train():
     from samples.iterative_training.IterativeTrainer import IterativeTrainer
     trainingDataset, validationDataset, testingDataset, trainingConfig, inferenceConfig = prepareTrainerInput()
     trainer = IterativeTrainer(trainingDataset, validationDataset, testingDataset, trainingConfig, inferenceConfig)
-    trainer.trainingLoop(parser.parse_args().start == 'vis')
+
+    # trainer.trainingLoop(parser.parse_args().start == 'vis')
+    trainer.visualizePredictability()
 
 
 def trainValTestAnnotations(imageAnnotations):
@@ -132,9 +134,10 @@ def main_explore_dataset():
 #     while cv2.waitKey() != 27: pass
 
 
-main_explore_dataset()
-# main_train()
+# main_explore_dataset()
+main_train()
 
 # TODO: add weighted
 # show masks
 # preload images and masks
+# inference on CPU???
