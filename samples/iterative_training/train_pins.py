@@ -35,8 +35,8 @@ def main_train():
     trainingDataset, validationDataset, testingDataset, trainingConfig, inferenceConfig = prepareTrainerInput()
     trainer = IterativeTrainer(trainingDataset, validationDataset, testingDataset, trainingConfig, inferenceConfig)
 
-    trainer.trainingLoop(parser.parse_args().start == 'vis')
-    # trainer.visualizePredictability()
+    # trainer.trainingLoop(parser.parse_args().start == 'vis')
+    trainer.visualizePredictability()
 
 
 def trainValTestAnnotations(imageAnnotations):
@@ -98,47 +98,10 @@ def main_explore_dataset():
     while cv2.waitKey() != 27: pass
 
 
-# def main_explore_dataset():
-#     import cv2
-#     import numpy as np
-#
-#     labels = ['pin']  # пока только пин
-#
-#     trainingDataset, validationDataset, testingDataset, _, _ = prepareTrainerInput()
-#
-#     labelColors = {l: tuple(map(lambda ch: int(ch * 255), c)) for l, c in zip(labels, random_colors(len(labels)))}
-#
-#     for dataset in [trainingDataset, validationDataset, testingDataset]:
-#         for imageId in dataset.image_ids:
-#             image = dataset.load_image(imageId)
-#             annotation = dataset.image_annotation(imageId)
-#             polygonAnnotations = [p for p in annotation.polygons if p.label in labels]
-#
-#             for polyAnnotation in polygonAnnotations:
-#                 cv2.polylines(image, np.array([polyAnnotation.points]), True, (255, 255, 255), 2)
-#                 maskColor = labelColors[polyAnnotation.label]
-#                 # TODO: blend mask with opacity
-#                 cv2.fillPoly(image, np.array([polyAnnotation.points]), maskColor)
-#
-#             # print stats pins count and pin_w_solder count
-#             print(annotation.name,
-#                   len(list(filter(lambda p: p.label == 'pin', annotation.polygons))),
-#                   len(list(filter(lambda p: p.label == 'pin_w_solder', annotation.polygons))))
-#
-#             mask, classIds = dataset.load_mask(imageId)
-#             print('mask', mask.shape, classIds)
-#
-#             cv2.imshow('Vis', Utils.rgb2bgr(image))
-#             cv2.setWindowTitle('Vis', annotation.name)
-#             cv2.waitKey()
-#     while cv2.waitKey() != 27: pass
-
-
 # main_explore_dataset()
 main_train()
 
 # TODO: add weighted for displaying masks
-
-# inference on CPU???
-# visualize image by image
-# test/visualize on all images from video_6/video_2
+# TODO: inference on CPU???
+# TODO: visualize image by image
+# TODO: test/visualize on all images from video_6/video_2
