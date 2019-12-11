@@ -35,8 +35,8 @@ def main_train():
     trainingDataset, validationDataset, testingDataset, trainingConfig, inferenceConfig = prepareTrainerInput()
     trainer = IterativeTrainer(trainingDataset, validationDataset, testingDataset, trainingConfig, inferenceConfig)
 
-    # trainer.trainingLoop(parser.parse_args().start == 'vis')
-    trainer.visualizePredictability()
+    trainer.trainingLoop(parser.parse_args().start == 'vis')
+    # trainer.visualizePredictability()
 
 
 def trainValTestAnnotations(imageAnnotations):
@@ -137,7 +137,8 @@ def main_explore_dataset():
 # main_explore_dataset()
 main_train()
 
-# TODO: add weighted
-# show masks
-# preload images and masks
+# TODO: add weighted for displaying masks
+
 # inference on CPU???
+# visualize image by image
+# test/visualize on all images from video_6/video_2

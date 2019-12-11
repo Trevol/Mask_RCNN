@@ -1,3 +1,5 @@
+from time import time
+
 import cv2
 import numpy as np
 
@@ -66,37 +68,33 @@ class IterativeTrainer():
         inferenceModel = self.getInferenceModel()
         inferenceModel.load_weights(weights, by_name=True)
 
-        imageHeight, imageWidth = self.trainingConfig.IMAGE_SHAPE[0:2]
-        hSpacer = np.full([imageHeight, 10, 3], 255, np.uint8)
-
+        WND_NAME = 'Predictability'
         while True:
             dataset = self.getTestingDataset()
-            rows = []
-            for imageId in dataset.image_ids:
+            for i, imageId in enumerate(dataset.image_ids, 1):
                 image = dataset.load_image(imageId)
+                t0 = time()
                 r = inferenceModel.detect([image])[0]
+                t1 = time()
+                print('detect', t1 - t0)
                 boxes, masks, classIds, scores = r['rois'], r['masks'], r['class_ids'], r['scores']
 
-                rowImage = Utils.display_instances(image, boxes, masks, classIds, scores)
-                rowImage = np.hstack([image, hSpacer, rowImage])
-                vSpacer = np.full([10, rowImage.shape[1], 3], 255, np.uint8)
-                rows.extend([rowImage, vSpacer])
-            total = np.vstack(rows)
-            WND_NAME = 'Predictability'
-            cv2.imshow(WND_NAME, Utils.rgb2bgr(total))
-            cv2.setWindowTitle(WND_NAME, f'Predictability {weights.split("/")[-1]}')
+                instancesImage = Utils.display_instances(image, boxes, masks, classIds, scores)
 
-            while True:
-                key = cv2.waitKey()
-                if key == 27:
-                    cv2.destroyWindow(WND_NAME)
-                    return 'esc'
-                if key == ord('t'):  # require training
-                    cv2.destroyWindow(WND_NAME)
-                    return 'train'
-                if key in [ord('n'), ord(' '), 13]:  # next visualization on n, space or enter
-                    cv2.destroyWindow('Predictability')
-                    break
+                cv2.imshow(WND_NAME, Utils.rgb2bgr(instancesImage))
+                cv2.setWindowTitle(WND_NAME, f'{i}/{len(dataset.image_ids)} Predictability {weights.split("/")[-1]}')
+
+                while True:
+                    key = cv2.waitKey()
+                    if key == 27:
+                        cv2.destroyWindow(WND_NAME)
+                        return 'esc'
+                    if key == ord('t'):  # require training
+                        cv2.destroyWindow(WND_NAME)
+                        return 'train'
+                    if key in [ord('n'), ord(' '), 13]:  # next visualization on n, space or enter
+                        cv2.destroyWindow(WND_NAME)
+                        break
 
     def trainingLoop(self, startWithVisualize):
         if startWithVisualize:

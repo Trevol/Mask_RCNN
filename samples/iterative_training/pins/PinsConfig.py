@@ -16,7 +16,7 @@ class PinsConfig(Config):
 
     # Number of classes (including background)
     NUM_CLASSES = 1 + 1  # background + pin
-    STEPS_PER_EPOCH = 50
+    STEPS_PER_EPOCH = 100
     # BACKBONE = "resnet101"
     # BACKBONE = "resnet50"
 
