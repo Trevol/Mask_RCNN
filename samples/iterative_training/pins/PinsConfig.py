@@ -18,8 +18,8 @@ class PinsConfig(Config):
     NUM_CLASSES = 1 + 1  # background + pin
     STEPS_PER_EPOCH = 100
 
-    BACKBONE = "resnet101"
-    # BACKBONE = "resnet50"
+    # BACKBONE = "resnet101"
+    BACKBONE = "resnet50"
 
     IMAGE_RESIZE_MODE = "square"
     IMAGE_MIN_DIM = 1024
