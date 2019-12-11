@@ -35,8 +35,8 @@ def main_train():
     trainingDataset, validationDataset, testingDataset, trainingConfig, inferenceConfig = prepareTrainerInput()
     trainer = IterativeTrainer(trainingDataset, validationDataset, testingDataset, trainingConfig, inferenceConfig)
 
-    # trainer.trainingLoop(parser.parse_args().start == 'vis')
-    trainer.visualizePredictability()
+    trainer.trainingLoop(parser.parse_args().start == 'vis')
+    # trainer.visualizePredictability()
 
 
 def trainValTestAnnotations(imageAnnotations):
