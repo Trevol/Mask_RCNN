@@ -17,8 +17,13 @@ class PinsConfig(Config):
     # Number of classes (including background)
     NUM_CLASSES = 1 + 1  # background + pin
     STEPS_PER_EPOCH = 100
-    # BACKBONE = "resnet101"
+
+    BACKBONE = "resnet101"
     # BACKBONE = "resnet50"
+
+    IMAGE_RESIZE_MODE = "square"
+    IMAGE_MIN_DIM = 1024
+    IMAGE_MAX_DIM = 1024
 
 
 class PinsInferenceConfig(PinsConfig):
