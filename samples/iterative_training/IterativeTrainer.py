@@ -8,11 +8,11 @@ from samples.iterative_training.Utils import Utils
 
 
 class IterativeTrainer():
-    def __init__(self, trainingDataset, validationDataset, testingDataset, trainingConfig, inferenceConfig,
+    def __init__(self, trainingDataset, validationDataset, testingGenerator, trainingConfig, inferenceConfig,
                  modelDir='./logs'):
         self.validationDataset = validationDataset
         self.trainingDataset = trainingDataset
-        self.testingDataset = testingDataset
+        self.testingGenerator = testingGenerator
         self.inferenceConfig = inferenceConfig
         self.trainingConfig = trainingConfig
         self.modelDir = modelDir
@@ -27,9 +27,9 @@ class IterativeTrainer():
         dataset = self.validationDataset
         return dataset() if callable(dataset) else dataset
 
-    def getTestingDataset(self):
-        dataset = self.testingDataset
-        return dataset() if callable(dataset) else dataset
+    def getTestingGenerator(self):
+        generator = self.testingGenerator
+        return generator() if callable(generator) else generator
 
     def findLastWeights(self):
         return MaskRCNNEx.findLastWeightsInModelDir(self.modelDir, self.trainingConfig.NAME.lower())
@@ -67,13 +67,12 @@ class IterativeTrainer():
         print('Visualizing weights: ', weights)
         inferenceModel = self.getInferenceModel()
         inferenceModel.load_weights(weights, by_name=True)
+        weightsFile = weights.split("/")[-1]
 
         WND_NAME = 'Predictability'
         while True:
-            dataset = self.getTestingDataset()
-            for i, imageId in enumerate(dataset.image_ids, 1):
-                image = dataset.load_image(imageId)
-
+            imageGenerator = self.getTestingGenerator()
+            for i, (imageFile, image) in enumerate(imageGenerator):
                 t0 = time()
                 # r = inferenceModel.detect([image])[0]
                 r = self.detect_DEBUG(inferenceModel, [image], verbose=0)[0]
@@ -85,7 +84,8 @@ class IterativeTrainer():
                 instancesImage = Utils.display_instances(image, boxes, masks, classIds, scores)
 
                 cv2.imshow(WND_NAME, Utils.rgb2bgr(instancesImage))
-                cv2.setWindowTitle(WND_NAME, f'{i}/{len(dataset.image_ids)} Predictability {weights.split("/")[-1]}')
+
+                cv2.setWindowTitle(WND_NAME, f'{imageFile} Predictability {weightsFile}')
 
                 while True:
                     key = cv2.waitKey()

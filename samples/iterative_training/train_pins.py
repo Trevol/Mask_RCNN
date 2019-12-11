@@ -8,6 +8,14 @@ from samples.iterative_training.pins.PinsDataset import PinsDataset
 from samples.iterative_training.arguments import parser
 
 
+def testImagesGenerator(*paths):
+    import glob, os, skimage.io
+    for path in paths:
+        imagePaths = glob.glob(os.path.join(path, '*.jpg'), recursive=False)
+        for imagePath in imagePaths:
+            yield os.path.basename(imagePath), skimage.io.imread(imagePath)
+
+
 def prepareTrainerInput():
     trainingConfig = PinsConfig()
     inferenceConfig = PinsInferenceConfig()
@@ -21,25 +29,14 @@ def prepareTrainerInput():
     # labels.remove('background')
     labels = ['pin']  # пока только пин
 
-    trainAnnotations, valAnnotations, testAnnotations = trainValTestAnnotations(
-        [*imageAnnotations1, *imageAnnotations2])
+    trainAnnotations, valAnnotations = trainValAnnotations([*imageAnnotations1, *imageAnnotations2])
     trainingDataset = PinsDataset(labels, imagesDir, trainAnnotations)
     validationDataset = PinsDataset(labels, imagesDir, valAnnotations)
-    testingDataset = PinsDataset(labels, imagesDir, testAnnotations)
 
-    return trainingDataset, validationDataset, testingDataset, trainingConfig, inferenceConfig
-
-
-def main_train():
-    from samples.iterative_training.IterativeTrainer import IterativeTrainer
-    trainingDataset, validationDataset, testingDataset, trainingConfig, inferenceConfig = prepareTrainerInput()
-    trainer = IterativeTrainer(trainingDataset, validationDataset, testingDataset, trainingConfig, inferenceConfig)
-
-    trainer.trainingLoop(parser.parse_args().start == 'vis')
-    # trainer.visualizePredictability()
+    return trainingDataset, validationDataset, testImagesGenerator(imagesDir), trainingConfig, inferenceConfig
 
 
-def trainValTestAnnotations(imageAnnotations):
+def trainValAnnotations(imageAnnotations):
     """
     filename         count(pin)  count(pin_w_solder)
     f_0230_15333.33_15.33.jpg 6 0
@@ -66,8 +63,16 @@ def trainValTestAnnotations(imageAnnotations):
                   'f_8499_566600.00_566.60.jpg']
     trainAnnotations = [ann for ann in imageAnnotations if ann.name in trainImages]
     valAnnotations = [ann for ann in imageAnnotations if ann.name in valImages]
-    testAnnotations = [ann for ann in imageAnnotations if ann.name in testImages]
-    return trainAnnotations, valAnnotations, testAnnotations
+    return trainAnnotations, valAnnotations
+
+
+def main_train():
+    from samples.iterative_training.IterativeTrainer import IterativeTrainer
+    trainingDataset, validationDataset, testingGenerator, trainingConfig, inferenceConfig = prepareTrainerInput()
+    trainer = IterativeTrainer(trainingDataset, validationDataset, testingGenerator, trainingConfig, inferenceConfig)
+
+    # trainer.trainingLoop(parser.parse_args().start == 'vis')
+    trainer.visualizePredictability()
 
 
 def main_explore_dataset():
@@ -76,12 +81,12 @@ def main_explore_dataset():
 
     labels = ['pin']  # пока только пин
 
-    trainingDataset, validationDataset, testingDataset, _, _ = prepareTrainerInput()
+    trainingDataset, validationDataset, testingGenerator, _, _ = prepareTrainerInput()
 
     labelColors = {l: tuple(map(lambda ch: int(ch * 255), c)) for l, c in zip(labels, random_colors(len(labels)))}
 
     numOfMasks = 3
-    for dataset in [trainingDataset, validationDataset, testingDataset]:
+    for dataset in [trainingDataset, validationDataset]:
         for imageId in dataset.image_ids:
             image = dataset.load_image(imageId)
             fileName = dataset.image_annotation(imageId).name
@@ -101,7 +106,7 @@ def main_explore_dataset():
 # main_explore_dataset()
 main_train()
 
+# TODO: test/visualize on all images from video_6/video_2
 # TODO: add weighted for displaying masks
 # TODO: inference on CPU???
 # TODO: visualize image by image
-# TODO: test/visualize on all images from video_6/video_2
