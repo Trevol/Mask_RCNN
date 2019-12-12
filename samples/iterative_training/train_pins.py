@@ -83,8 +83,6 @@ def main_explore_dataset():
 
     trainingDataset, validationDataset, testingGenerator, _, _ = prepareTrainerInput()
 
-    labelColors = {l: tuple(map(lambda ch: int(ch * 255), c)) for l, c in zip(labels, random_colors(len(labels)))}
-
     numOfMasks = 3
     for dataset in [trainingDataset, validationDataset]:
         for imageId in dataset.image_ids:

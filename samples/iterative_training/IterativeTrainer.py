@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 
 from samples.iterative_training.MaskRCNNEx import MaskRCNNEx
+from samples.iterative_training.Timer import timeit
 from samples.iterative_training.Utils import Utils
 
 
@@ -73,15 +74,15 @@ class IterativeTrainer():
         while True:
             imageGenerator = self.getTestingGenerator()
             for i, (imageFile, image) in enumerate(imageGenerator):
-                t0 = time()
-                # r = inferenceModel.detect([image])[0]
-                r = self.detect_DEBUG(inferenceModel, [image], verbose=0)[0]
-                t1 = time()
-                print('detect', t1 - t0)
+                print('--------------------------')
+                with timeit('detect'):
+                    # r = inferenceModel.detect([image])[0]
+                    r = self.detect_DEBUG(inferenceModel, [image], verbose=0)[0]
 
                 boxes, masks, classIds, scores = r['rois'], r['masks'], r['class_ids'], r['scores']
 
-                instancesImage = Utils.display_instances(image, boxes, masks, classIds, scores)
+                with timeit('display_instances(apply masks)'):
+                    instancesImage = Utils.display_instances(image, boxes, masks, classIds, scores)
 
                 cv2.imshow(WND_NAME, Utils.rgb2bgr(instancesImage))
 
@@ -121,7 +122,8 @@ class IterativeTrainer():
         #         log("image", image)
 
         # Mold inputs to format expected by the neural network
-        molded_images, image_metas, windows = model.mold_inputs(images)
+        with timeit('mold_detections'):
+            molded_images, image_metas, windows = model.mold_inputs(images)
 
         # Validate image sizes
         # All images in a batch MUST be of the same size
@@ -131,28 +133,31 @@ class IterativeTrainer():
                 "After resizing, all images must have the same size. Check IMAGE_RESIZE_MODE and image sizes."
 
         # Anchors
-        anchors = model.get_anchors(image_shape)
-        # Duplicate across the batch dimension because Keras requires it
-        # TODO: can this be optimized to avoid duplicating the anchors?
-        anchors = np.broadcast_to(anchors, (model.config.BATCH_SIZE,) + anchors.shape)
+        with timeit('get_anchors and broadcast_to'):
+            anchors = model.get_anchors(image_shape)
+            # Duplicate across the batch dimension because Keras requires it
+            # TODO: can this be optimized to avoid duplicating the anchors?
+            anchors = np.broadcast_to(anchors, (model.config.BATCH_SIZE,) + anchors.shape)
 
         # if verbose:
         #     log("molded_images", molded_images)
         #     log("image_metas", image_metas)
         #     log("anchors", anchors)
         # Run object detection
-        t0 = time()
-        detections, _, _, mrcnn_mask, _, _, _ = \
-            model.keras_model.predict([molded_images, image_metas, anchors], verbose=0)
-        t1 = time()
-        print('model.keras_model.predict', t1 - t0)
+
+        with timeit('model.keras_model.predict'):
+            detections, _, _, mrcnn_mask, _, _, _ = \
+                model.keras_model.predict([molded_images, image_metas, anchors], verbose=0)
+
         # Process detections
         results = []
+
         for i, image in enumerate(images):
-            final_rois, final_class_ids, final_scores, final_masks = \
-                model.unmold_detections(detections[i], mrcnn_mask[i],
-                                        image.shape, molded_images[i].shape,
-                                        windows[i])
+            with timeit('unmold_detections'):
+                final_rois, final_class_ids, final_scores, final_masks = \
+                    model.unmold_detections(detections[i], mrcnn_mask[i],
+                                            image.shape, molded_images[i].shape,
+                                            windows[i])
             results.append({
                 "rois": final_rois,
                 "class_ids": final_class_ids,

@@ -1,7 +1,7 @@
+import colorsys
+import random
 import cv2
 import numpy as np
-
-from mrcnn.visualize import random_colors, apply_mask
 
 
 class Utils:
@@ -26,36 +26,49 @@ class Utils:
         else:
             assert boxes.shape[0] == masks.shape[-1] == class_ids.shape[0]
 
-        # If no axis is passed, create one and automatically call show()
-        auto_show = False
-
         # Generate random colors
-        colors = random_colors(N)
-
-        # Show area outside image boundaries.
-        height, width = image.shape[:2]
+        colors = Utils.random_colors(N)
 
         masked_image = image.copy()
         for i in range(N):
-            color = colors[i]
-
-            # Bounding box
             if not np.any(boxes[i]):
-                # Skip this instance. Has no bbox. Likely lost in image cropping.
                 continue
+            color = colors[i]
             y1, x1, y2, x2 = boxes[i]
-
             cv2.rectangle(masked_image, (x1, y1), (x2, y2), color, 1)
 
-            # Label
-            # ax.text(x1, y1 + 8, caption, color='w', size=11, backgroundcolor="none")
-
-            # Mask
             mask = masks[:, :, i]
-            masked_image = apply_mask(masked_image, mask, color)
+            masked_image = Utils.apply_mask(masked_image, mask, color)
 
-        return masked_image.astype(np.uint8)
+        return masked_image
+
+    @staticmethod
+    def apply_mask(image, mask, color, alpha=0.5):
+        for c in range(3):
+            image[:, :, c] = np.where(mask,
+                                      image[:, :, c] *
+                                      (1 - alpha) + alpha * color[c],
+                                      image[:, :, c])
+        return image
 
     @staticmethod
     def rgb2bgr(rgb):
         return cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
+
+    @staticmethod
+    def random_colors(N, bright=True):
+        """
+        Generate random colors.
+        To get visually distinct colors, generate them in HSV space then
+        convert to RGB.
+        """
+        brightness = 1.0 if bright else 0.7
+        hsv = [(i / N, 1, brightness) for i in range(N)]
+        colors = list(map(lambda c: Utils.hsv2rgb(c), hsv))
+        random.shuffle(colors)
+        return colors
+
+    @staticmethod
+    def hsv2rgb(hsv):
+        r, g, b = colorsys.hsv_to_rgb(*hsv)
+        return int(r * 255), int(g * 255), int(b * 255)
