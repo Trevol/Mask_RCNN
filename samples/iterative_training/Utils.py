@@ -29,7 +29,7 @@ class Utils:
         # Generate random colors
         colors = Utils.random_colors(N)
 
-        masked_image = image.copy()
+        masked_image = image
         for i in range(N):
             if not np.any(boxes[i]):
                 continue

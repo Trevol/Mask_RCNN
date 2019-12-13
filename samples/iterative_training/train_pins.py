@@ -104,6 +104,7 @@ def main_explore_dataset():
 # main_explore_dataset()
 main_train()
 
+# TODO: speedup
 # TODO: test/visualize on all images from video_6/video_2
 # TODO: add weighted for displaying masks
 # TODO: inference on CPU???

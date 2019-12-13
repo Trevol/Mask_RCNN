@@ -1,4 +1,4 @@
-from time import time
+import os
 
 import cv2
 import numpy as np
@@ -82,7 +82,7 @@ class IterativeTrainer():
                 boxes, masks, classIds, scores = r['rois'], r['masks'], r['class_ids'], r['scores']
 
                 with timeit('display_instances(apply masks)'):
-                    instancesImage = Utils.display_instances(image, boxes, masks, classIds, scores)
+                    instancesImage = Utils.display_instances(image.copy(), boxes, masks, classIds, scores)
 
                 cv2.imshow(WND_NAME, Utils.rgb2bgr(instancesImage))
 
@@ -93,12 +93,25 @@ class IterativeTrainer():
                     if key == 27:
                         cv2.destroyWindow(WND_NAME)
                         return 'esc'
-                    if key == ord('t'):  # require training
+                    elif key == ord('s'):
+                        # save image and masks
+                        self.save(imageFile, image, masks)
+                    elif key == ord('t'):  # require training
                         cv2.destroyWindow(WND_NAME)
                         return 'train'
-                    if key in [ord('n'), ord(' '), 13]:  # next visualization on n, space or enter
+                    elif key in [ord('n'), ord(' '), 13]:  # next visualization on n, space or enter
                         cv2.destroyWindow(WND_NAME)
                         break
+
+    @staticmethod
+    def save(imageFile, image, masks, verbose=True):
+        cv2.imwrite(imageFile, Utils.rgb2bgr(image))
+        nameWithoutExt = os.path.splitext(imageFile)[0]
+        masksFile = nameWithoutExt + '_masks.npy'
+        np.save(masksFile, masks)
+        if verbose:
+            print('Saved.', imageFile, masksFile)
+
 
     @staticmethod
     def detect_DEBUG(model, images, verbose=0):
