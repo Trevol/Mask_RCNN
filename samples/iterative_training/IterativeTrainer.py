@@ -83,6 +83,8 @@ class IterativeTrainer():
 
                 with timeit('display_instances(apply masks)'):
                     instancesImage = Utils.display_instances(image.copy(), boxes, masks, classIds, scores)
+                    for (y1, x1, y2, x2), score in zip(boxes, scores):
+                        cv2.putText(instancesImage, f'{score:.2f}', (x1+8, y1+8), cv2.FONT_HERSHEY_SIMPLEX, .3, (255, 255, 255))
 
                 cv2.imshow(WND_NAME, Utils.rgb2bgr(instancesImage))
 
@@ -135,7 +137,7 @@ class IterativeTrainer():
         #         log("image", image)
 
         # Mold inputs to format expected by the neural network
-        with timeit('mold_detections'):
+        with timeit('mold_inputs'):
             molded_images, image_metas, windows = model.mold_inputs(images)
 
         # Validate image sizes

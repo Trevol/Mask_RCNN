@@ -27,23 +27,35 @@ class Utils:
             assert boxes.shape[0] == masks.shape[-1] == class_ids.shape[0]
 
         # Generate random colors
-        colors = Utils.random_colors(N)
+        colors = Utils.random_colors(256)
+        colorMap = np.reshape(colors, [256, 1, 3]).astype(np.uint8)
 
         masked_image = image
         for i in range(N):
             if not np.any(boxes[i]):
                 continue
-            color = colors[i]
             y1, x1, y2, x2 = boxes[i]
-            cv2.rectangle(masked_image, (x1, y1), (x2, y2), color, 1)
+            cv2.rectangle(masked_image, (x1, y1), (x2, y2), colors[i], 1)
 
-            mask = masks[:, :, i]
-            masked_image = Utils.apply_mask(masked_image, mask, color)
+        masked_image = Utils.applyMasks(masked_image, masks, colorMap)
 
         return masked_image
 
     @staticmethod
-    def apply_mask(image, mask, color, alpha=0.5):
+    def applyMasks(image, masks, colorMap, alpha=.5):
+        zeroInstanceMask = masks[..., 0]
+        instanceIndexes = np.argmax(masks, -1).astype(np.uint8)
+        # First instance marked by 0 and BG has 0 value
+        # so set different value for first instance
+        instanceIndexes[zeroInstanceMask] = 255
+        instancesMask = instanceIndexes.astype(np.bool)
+        coloredInstances = cv2.applyColorMap(instanceIndexes, colorMap)
+        blendedAndMasked = cv2.addWeighted(image, 1 - alpha, coloredInstances, alpha, 0)[instancesMask]
+        image[instancesMask] = blendedAndMasked
+        return image
+
+    @staticmethod
+    def apply_mask_slow(image, mask, color, alpha=0.5):
         for c in range(3):
             image[:, :, c] = np.where(mask,
                                       image[:, :, c] *
