@@ -1,0 +1,5 @@
+# TODO: test/visualize on all images from video_6/video_2
+    # TODO: visualize image by image
+
+# TODO: inference on CPU???
+# ReduceLRonPlatue

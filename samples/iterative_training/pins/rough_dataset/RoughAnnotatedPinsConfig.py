@@ -1,7 +1,8 @@
 from mrcnn.config import Config
+from samples.iterative_training.pins.PinsConfig import PinsConfig
 
 
-class PinsConfig(Config):
+class RoughAnnotatedPinsConfig(PinsConfig):
     """Configuration for training on the toy shapes dataset.
     Derives from the base Config class and overrides values specific
     to the toy shapes dataset.
@@ -15,8 +16,8 @@ class PinsConfig(Config):
     IMAGES_PER_GPU = 1
 
     # Number of classes (including background)
-    NUM_CLASSES = 1 + 1  # background + pin
-    STEPS_PER_EPOCH = 500
+    NUM_CLASSES = 1 + 2  # background + pin + pin_w_solder
+    STEPS_PER_EPOCH = 2000
 
     # BACKBONE = "resnet101"
     BACKBONE = "resnet50"
@@ -26,5 +27,5 @@ class PinsConfig(Config):
     IMAGE_MAX_DIM = 512
 
 
-class PinsInferenceConfig(PinsConfig):
+class RoughAnnotatedPinsInferenceConfig(RoughAnnotatedPinsConfig):
     IMAGES_PER_GPU = 1

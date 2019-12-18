@@ -12,7 +12,7 @@ def testImagesGenerator(*paths):
     import glob, os, skimage.io
     for path in paths:
         imagePaths = glob.glob(os.path.join(path, '*.jpg'), recursive=False)
-        for imagePath in imagePaths:
+        for imagePath in sorted(imagePaths):
             yield os.path.basename(imagePath), skimage.io.imread(imagePath)
 
 
@@ -21,9 +21,9 @@ def prepareTrainerInput():
     inferenceConfig = PinsInferenceConfig()
 
     imagesDir = '/home/trevol/HDD_DATA/Computer_Vision_Task/frames_6'
-    annotationFile1 = 'pins/1_TestSegmentation.xml'
+    annotationFile1 = '1_TestSegmentation.xml'
     labels, imageAnnotations1 = CvatAnnotation.parse(annotationFile1)
-    annotationFile2 = 'pins/2_TestSegmentation_2.xml'
+    annotationFile2 = '2_TestSegmentation_2.xml'
     labels2, imageAnnotations2 = CvatAnnotation.parse(annotationFile2)
     assert labels2 == labels
     # labels.remove('background')
@@ -69,43 +69,17 @@ def trainValAnnotations(imageAnnotations):
 def main_train():
     from samples.iterative_training.IterativeTrainer import IterativeTrainer
     trainingDataset, validationDataset, testingGenerator, trainingConfig, inferenceConfig = prepareTrainerInput()
-    trainer = IterativeTrainer(trainingDataset, validationDataset, testingGenerator, trainingConfig, inferenceConfig)
+    trainer = IterativeTrainer(trainingDataset, validationDataset, testingGenerator, trainingConfig, inferenceConfig,
+                               initialWeights='../../mask_rcnn_coco.h5')
 
-    # trainer.trainingLoop(parser.parse_args().start == 'vis')
-    trainer.visualizePredictability()
+    trainer.trainingLoop(parser.parse_args().start == 'vis')
+    # trainer.visualizePredictability()
 
 
 def main_explore_dataset():
-    import cv2
-    import numpy as np
-
-    labels = ['pin']  # пока только пин
-
     trainingDataset, validationDataset, testingGenerator, _, _ = prepareTrainerInput()
-
-    numOfMasks = 3
-    for dataset in [trainingDataset, validationDataset]:
-        for imageId in dataset.image_ids:
-            image = dataset.load_image(imageId)
-            fileName = dataset.image_annotation(imageId).name
-            mask, classIds = dataset.load_mask(imageId)
-
-            for i, classId in enumerate(classIds[:numOfMasks]):
-                instanceMask = mask[..., i]
-                instanceMask = np.multiply(instanceMask, 255, dtype=np.uint8)
-                cv2.imshow(f'Instance {i}', instanceMask)
-
-            cv2.imshow('Vis', Utils.rgb2bgr(image))
-            cv2.setWindowTitle('Vis', fileName)
-            cv2.waitKey()
-    while cv2.waitKey() != 27: pass
+    Utils.exploreDatasets(trainingDataset, validationDataset)
 
 
 # main_explore_dataset()
 main_train()
-
-# TODO: speedup
-# TODO: test/visualize on all images from video_6/video_2
-# TODO: add weighted for displaying masks
-# TODO: inference on CPU???
-# TODO: visualize image by image
