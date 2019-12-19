@@ -72,7 +72,8 @@ class IterativeTrainer():
         inferenceModel.load_weights(weights, by_name=True)
         weightsFile = weights.split("/")[-1]
 
-        with contexts(ImshowWindow('Predictability'), ImshowWindow('Original')) as (predWindow, origWindow):
+        with contexts(ImshowWindow('Predictability'),
+                      ImshowWindow('Original')) as (predWindow, origWindow):
             while True:
                 imageGenerator = self.getTestingGenerator()
                 for i, (imageFile, image) in enumerate(imageGenerator):

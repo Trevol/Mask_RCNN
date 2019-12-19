@@ -81,5 +81,5 @@ def main_explore_dataset():
     Utils.exploreDatasets(trainingDataset, validationDataset)
 
 
-# main_explore_dataset()
-main_train()
+main_explore_dataset()
+# main_train()

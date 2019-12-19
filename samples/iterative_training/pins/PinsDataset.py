@@ -36,14 +36,33 @@ class PinsDataset(utils.Dataset):
         class_ids = np.array([labels.index(p.label) + 1 for p in polygons])
         return mask, class_ids.astype(np.int32)
 
-    def __init__(self, labels, imagesDir, imageAnnotations):
+    @staticmethod
+    def findImagePath(searchPaths, imageFileName):
+        if os.path.isfile(imageFileName):
+            return imageFileName
+        for searchPath in searchPaths:
+            imagePath = os.path.join(searchPath, imageFileName)
+            if os.path.isfile(imagePath):
+                return imagePath
+        return None
+
+    def __init__(self, labels, imagesDirs, imageAnnotations):
         super(PinsDataset, self).__init__()
+
+        assert imagesDirs is None or isinstance(imagesDirs, (str, list))
+        if imagesDirs is None:
+            imagesDirs = []
+        if isinstance(imagesDirs, str):
+            imagesDirs = [imagesDirs]
+
         self.labels = labels
         for i, label in enumerate(labels):
             self.add_class("pins", i, label)
 
         for i, imageAnnotation in enumerate(imageAnnotations):
-            imagePath = os.path.join(imagesDir, imageAnnotation.name)
+            imagePath = self.findImagePath(imagesDirs, imageAnnotation.name)
+            if not imagePath:
+                raise Exception(f'Can not find {imageAnnotation.name}')
             image = self.loadImageByPath(imagePath)
             mask = self.makeMask(image.shape[:2], imageAnnotation.polygons, labels)
 

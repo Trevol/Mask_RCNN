@@ -1,5 +1,5 @@
 import itertools
-
+import os
 from mrcnn.visualize import random_colors
 from samples.iterative_training.Utils import Utils
 from samples.iterative_training.pins.CvatAnnotation import CvatAnnotation
@@ -11,10 +11,12 @@ from samples.iterative_training.pins.rough_dataset.RoughAnnotatedPinsConfig impo
 
 
 def imagesGenerator(*paths):
-    import glob, os, skimage.io
+    import glob, skimage.io
+    reverse = True
+    step = 10
     for path in paths:
         imagePaths = glob.glob(os.path.join(path, '*.jpg'), recursive=False)
-        for imagePath in sorted(imagePaths, reverse=True):
+        for imagePath in sorted(imagePaths, reverse=reverse)[::step]:
             yield os.path.basename(imagePath), skimage.io.imread(imagePath)
 
 
@@ -25,15 +27,22 @@ def prepareTrainerInput():
     inferenceConfig = RoughAnnotatedPinsInferenceConfig()
 
     imagesDir = '/home/trevol/HDD_DATA/Computer_Vision_Task/frames_6'
-    trainAnnotationFile = '4_8_point_pin_train.xml'
+    dataDir = './data'
+
+    trainAnnotationFile = os.path.join(dataDir, '4_8_point_pin_train.xml')
     trainLabels, trainImageAnnotations = CvatAnnotation.parse(trainAnnotationFile)
-    valAnnotationFile = '5_8_point_pin_val.xml'
+
+    trainAnnotationFile2 = os.path.join(dataDir, '6_8_point_pin_train_2.xml')
+    trainLabels2, trainImageAnnotations2 = CvatAnnotation.parse(trainAnnotationFile2)
+
+    valAnnotationFile = os.path.join(dataDir, '5_8_point_pin_val.xml')
     valLabels, valImageAnnotations = CvatAnnotation.parse(valAnnotationFile)
     assert trainLabels == valLabels
     assert trainLabels == labels
+    assert trainLabels2 == labels
 
-    trainingDataset = PinsDataset(labels, imagesDir, trainImageAnnotations)
-    validationDataset = PinsDataset(labels, imagesDir, valImageAnnotations)
+    trainingDataset = PinsDataset(labels, [imagesDir, dataDir], trainImageAnnotations + trainImageAnnotations2)
+    validationDataset = PinsDataset(labels, [imagesDir, dataDir], valImageAnnotations)
 
     return trainingDataset, validationDataset, imagesGenerator(imagesDir), trainingConfig, inferenceConfig
 
@@ -55,7 +64,7 @@ def main_explore_dataset():
     Utils.exploreDatasets(trainingDataset, validationDataset)
 
 
-# main_explore_dataset()
-main_train()
+main_explore_dataset()
+# main_train()
 
 # export PYTHONPATH=$PYTHONPATH:../../../..
