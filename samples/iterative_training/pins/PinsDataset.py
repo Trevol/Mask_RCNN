@@ -7,6 +7,8 @@ import os
 import skimage.io
 import skimage.color
 
+from samples.iterative_training.Utils import Utils
+
 
 class PinsDataset(utils.Dataset):
     @staticmethod
@@ -36,15 +38,7 @@ class PinsDataset(utils.Dataset):
         class_ids = np.array([labels.index(p.label) + 1 for p in polygons])
         return mask, class_ids.astype(np.int32)
 
-    @staticmethod
-    def findImagePath(searchPaths, imageFileName):
-        if os.path.isfile(imageFileName):
-            return imageFileName
-        for searchPath in searchPaths:
-            imagePath = os.path.join(searchPath, imageFileName)
-            if os.path.isfile(imagePath):
-                return imagePath
-        return None
+
 
     def __init__(self, labels, imagesDirs, imageAnnotations):
         super(PinsDataset, self).__init__()
@@ -60,7 +54,7 @@ class PinsDataset(utils.Dataset):
             self.add_class("pins", i, label)
 
         for i, imageAnnotation in enumerate(imageAnnotations):
-            imagePath = self.findImagePath(imagesDirs, imageAnnotation.name)
+            imagePath = Utils.findFilePath(imagesDirs, imageAnnotation.name)
             if not imagePath:
                 raise Exception(f'Can not find {imageAnnotation.name}')
             image = self.loadImageByPath(imagePath)

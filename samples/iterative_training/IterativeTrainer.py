@@ -35,7 +35,8 @@ class IterativeTrainer():
         return generator() if callable(generator) else generator
 
     def findLastWeights(self):
-        return MaskRCNNEx.findLastWeightsInModelDir(self.modelDir, self.trainingConfig.NAME.lower())
+        modelName = (self.trainingConfig or self.inferenceConfig).NAME.lower()
+        return MaskRCNNEx.findLastWeightsInModelDir(self.modelDir, modelName)
 
     def getTrainableModel(self, loadWeights):
         if not self._trainableModel:
@@ -51,10 +52,15 @@ class IterativeTrainer():
 
         return self._trainableModel
 
-    def getInferenceModel(self):
+    def getInferenceModel(self, loadLastWeights):
         if not self._inferenceModel:
             self._inferenceModel = MaskRCNNEx(mode='inference', config=self.inferenceConfig, model_dir=self.modelDir)
-        return self._inferenceModel
+        lastWeights = None
+        if loadLastWeights:
+            lastWeights = self.findLastWeights()
+            if lastWeights:
+                self._inferenceModel.load_weights(lastWeights, by_name=True)
+        return self._inferenceModel, lastWeights
 
     def train(self):
         trainableModel = self.getTrainableModel(loadWeights=True)
@@ -66,11 +72,9 @@ class IterativeTrainer():
                              epochs=trainableModel.epoch + 1, layers='all')
 
     def visualizePredictability(self):
-        weights = self.findLastWeights()
-        print('Visualizing weights: ', weights)
-        inferenceModel = self.getInferenceModel()
-        inferenceModel.load_weights(weights, by_name=True)
-        weightsFile = weights.split("/")[-1]
+        inferenceModel, weights = self.getInferenceModel(loadLastWeights=True)
+        print('Using weights: ', weights)
+        weightsFile = os.path.basename(weights)
 
         with contexts(ImshowWindow('Predictability'),
                       ImshowWindow('Original')) as (predWindow, origWindow):
@@ -119,4 +123,45 @@ class IterativeTrainer():
             if interactionResult == 'esc':
                 break
 
+    #############
+    def saveDetections(self, imagesGenerator, saveDir):
+        import pickle
+        model, weights = self.getInferenceModel(loadLastWeights=True)
+        print('Using weights ', weights)
 
+        os.makedirs(saveDir, exist_ok=True)
+        for i, (imageFile, image) in enumerate(imagesGenerator):
+            # TODO: use small masks!!!!!!
+            r = model.detect([image])[0]
+            nameWithoutExt = os.path.splitext(imageFile)[0]
+            outFile = os.path.join(saveDir, nameWithoutExt + '.pickle')
+            with open(outFile, 'wb') as f:
+                pickle.dump(r, f, pickle.HIGHEST_PROTOCOL)
+            if i > 0 and i % 50 == 0:
+                print(f'{i} images processed')
+
+    def showSavedDetections(self, saveDir, inReverseOrder, imagesDirs, imageExt, step):
+        import glob, cv2
+
+        def genDetectionsAndImage():
+            picklePaths = glob.glob(os.path.join(saveDir, '*.pickle'), recursive=False)
+            for picklePath in sorted(picklePaths, reverse=inReverseOrder)[::step]:
+                r = Utils.loadPickle(picklePath)
+                boxes, masks, classIds, scores = r['rois'], r['masks'], r['class_ids'], r['scores']
+                imageFileName = os.path.splitext(os.path.basename(picklePath))[0] + '.' + imageExt
+                imagePath = Utils.findFilePath(imagesDirs, imageFileName)
+                image = cv2.imread(imagePath)
+                yield boxes, masks, classIds, scores, image, imageFileName
+
+        with contexts(ImshowWindow('Predictability'), ImshowWindow('Original')) as (instancesWindow, origWindow):
+            for boxes, masks, classIds, scores, image, imageFileName in genDetectionsAndImage():
+                instancesImage = Utils.display_instances(image.copy(), boxes, masks, classIds, scores)
+
+                instancesWindow.imshow(instancesImage, imgInRgb=False)
+                instancesWindow.setTitle(f'{imageFileName}')
+                origWindow.imshow(image, imgInRgb=False)
+                origWindow.setTitle(f'{imageFileName}')
+
+                key = cv2.waitKey(10000)
+                if key == 27:
+                    return 'esc'

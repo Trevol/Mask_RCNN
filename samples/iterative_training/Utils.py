@@ -2,7 +2,8 @@ import colorsys
 import random
 import cv2
 import numpy as np
-
+import os
+import pickle
 
 class Utils:
     @staticmethod
@@ -120,6 +121,25 @@ class Utils:
                 cv2.waitKey()
         while cv2.waitKey() != 27: pass
 
+    @staticmethod
+    def findFilePath(searchPaths, fileName):
+        if os.path.isfile(fileName):
+            return fileName
+        for searchPath in searchPaths:
+            filePath = os.path.join(searchPath, fileName)
+            if os.path.isfile(filePath):
+                return filePath
+        return None
+
+    @staticmethod
+    def savePickle(obj, picklePath):
+        with open(picklePath, 'wb') as f:
+            pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
+
+    @staticmethod
+    def loadPickle(picklePath):
+        with open(picklePath, 'rb') as f:
+            return pickle.load(f)
 
 class contexts:
     def __init__(self, *contextObjects):

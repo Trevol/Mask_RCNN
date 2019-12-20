@@ -1,21 +1,24 @@
-import itertools
 import os
-from mrcnn.visualize import random_colors
-from samples.iterative_training.Utils import Utils
+
+from samples.iterative_training.ImshowWindow import ImshowWindow
+from samples.iterative_training.MaskRCNNEx import MaskRCNNEx
+from samples.iterative_training.Utils import Utils, contexts
 from samples.iterative_training.pins.CvatAnnotation import CvatAnnotation
-from samples.iterative_training.pins.PinsConfig import PinsConfig, PinsInferenceConfig
 from samples.iterative_training.pins.PinsDataset import PinsDataset
 from samples.iterative_training.arguments import parser
 from samples.iterative_training.pins.rough_dataset.RoughAnnotatedPinsConfig import RoughAnnotatedPinsConfig, \
     RoughAnnotatedPinsInferenceConfig
 
 
-def imagesGenerator(*paths):
+def imagesGenerator(reverse, step, paths, ext):
+    assert isinstance(paths, (list, str))
+    if isinstance(paths, str):
+        paths = [paths]
+    assert len(paths)
+
     import glob, skimage.io
-    reverse = True
-    step = 10
     for path in paths:
-        imagePaths = glob.glob(os.path.join(path, '*.jpg'), recursive=False)
+        imagePaths = glob.glob(os.path.join(path, f'*.{ext}'), recursive=False)
         for imagePath in sorted(imagePaths, reverse=reverse)[::step]:
             yield os.path.basename(imagePath), skimage.io.imread(imagePath)
 
@@ -44,7 +47,8 @@ def prepareTrainerInput():
     trainingDataset = PinsDataset(labels, [imagesDir, dataDir], trainImageAnnotations + trainImageAnnotations2)
     validationDataset = PinsDataset(labels, [imagesDir, dataDir], valImageAnnotations)
 
-    return trainingDataset, validationDataset, imagesGenerator(imagesDir), trainingConfig, inferenceConfig
+    return trainingDataset, validationDataset, imagesGenerator(True, 10, [imagesDir],
+                                                               'jpg'), trainingConfig, inferenceConfig
 
 
 def main_train():
@@ -64,7 +68,23 @@ def main_explore_dataset():
     Utils.exploreDatasets(trainingDataset, validationDataset)
 
 
-main_explore_dataset()
+def saveOrShowDetections():
+    from samples.iterative_training.IterativeTrainer import IterativeTrainer
+    inferenceConfig = RoughAnnotatedPinsInferenceConfig()
+    trainer = IterativeTrainer(None, None, None, None, inferenceConfig, None)
+
+    saveDir = '/home/trevol/HDD_DATA/TMP/frames/detect_all'
+    imagesDirs = ['/home/trevol/HDD_DATA/Computer_Vision_Task/frames_6']
+    imageExt = 'jpg'
+
+    # imagesGen = imagesGenerator(False, 1000, imagesDirs, imageExt)
+    # trainer.saveDetections(imagesGen, saveDir)
+
+    trainer.showSavedDetections(saveDir, True, imagesDirs, imageExt, 1)
+
+
+# main_explore_dataset()
+saveOrShowDetections()
 # main_train()
 
 # export PYTHONPATH=$PYTHONPATH:../../../..
