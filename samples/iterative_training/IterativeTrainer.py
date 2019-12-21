@@ -6,6 +6,7 @@ import numpy as np
 
 from samples.iterative_training.ImshowWindow import ImshowWindow
 from samples.iterative_training.MaskRCNNEx import MaskRCNNEx
+from samples.iterative_training.Timer import timeit
 from samples.iterative_training.Utils import Utils, contexts
 
 
@@ -83,7 +84,8 @@ class IterativeTrainer():
                 for i, (imageFile, image) in enumerate(imageGenerator):
                     predWindow.setBusy()
                     origWindow.setBusy()
-                    r = inferenceModel.detect([image])[0]
+                    with timeit():
+                        r = inferenceModel.detect([image])[0]
                     boxes, masks, classIds, scores = r['rois'], r['masks'], r['class_ids'], r['scores']
                     instancesImage = Utils.display_instances(image.copy(), boxes, masks, classIds, scores)
 
@@ -112,8 +114,8 @@ class IterativeTrainer():
         if verbose:
             print('Saved.', imageFile, masksFile)
 
-    def trainingLoop(self, startWithVisualize):
-        if startWithVisualize:
+    def trainingLoop(self, startWithVisualization):
+        if startWithVisualization:
             interactionResult = self.visualizePredictability()
             if interactionResult == 'esc':
                 return

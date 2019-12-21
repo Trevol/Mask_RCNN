@@ -59,7 +59,8 @@ def main_train():
     trainer = IterativeTrainer(trainingDataset, validationDataset, testingGenerator, trainingConfig, inferenceConfig,
                                initialWeights=initialWeights)
 
-    trainer.trainingLoop(parser.parse_args().start == 'vis')
+    startWithVisualization = parser.parse_args().start == 'vis'
+    trainer.trainingLoop(startWithVisualization)
     # trainer.visualizePredictability()
 
 
@@ -84,7 +85,7 @@ def saveOrShowDetections():
 
 
 # main_explore_dataset()
-saveOrShowDetections()
-# main_train()
+# saveOrShowDetections()
+main_train()
 
 # export PYTHONPATH=$PYTHONPATH:../../../..
