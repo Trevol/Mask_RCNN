@@ -164,7 +164,10 @@ class NewDetector:
             colorMap = Utils.createColorMap()
         for i, ((y1, x1, y2, x2), mask) in enumerate(zip(bboxes, masks)):
             color = colorMap[i, 0]
-            image[y1:y2, x1:x2][mask] = color
+            h = y2 - y1
+            w = x2 - x1
+            colored = np.full([h, w, 3], color, np.uint8)
+            image[y1:y2, x1:x2][mask] = image[y1:y2, x1:x2][mask] * alpha + colored[mask] * (1 - alpha)
         return image
 
 
@@ -189,13 +192,12 @@ def main():
     # with timeit():
     #     r = NewDetector.detect(model, [image])[0]
 
-
-
     boxes, masks, classIds, scores = r['rois'], r['masks'], r['class_ids'], r['scores']
     colors = Utils.random_colors(256)
     colorMap = np.reshape(colors, [256, 1, 3]).astype(np.uint8)
     instancesImage = NewDetector.applyBboxMasks(image, boxes, masks, colorMap)
     ImshowWindow('').imshow(instancesImage)
     cv2.waitKey()
+
 
 main()
