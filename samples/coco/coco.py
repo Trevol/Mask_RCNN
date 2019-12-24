@@ -365,7 +365,7 @@ def evaluate_coco(model, dataset, coco, eval_type="bbox", limit=0, image_ids=Non
 
         # Run detection
         t = time.time()
-        r = model.detect([image], verbose=0)[0]
+        r = model.detect_minimasks([image], verbose=0)[0]
         t_prediction += (time.time() - t)
 
         # Convert results to COCO format

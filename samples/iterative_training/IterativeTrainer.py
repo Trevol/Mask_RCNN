@@ -85,7 +85,7 @@ class IterativeTrainer():
                     predWindow.setBusy()
                     origWindow.setBusy()
                     with timeit():
-                        r = inferenceModel.detect([image])[0]
+                        r = inferenceModel.detect_minimasks([image])[0]
                     boxes, masks, classIds, scores = r['rois'], r['masks'], r['class_ids'], r['scores']
                     instancesImage = Utils.display_instances(image.copy(), boxes, masks, classIds, scores)
 
@@ -133,12 +133,10 @@ class IterativeTrainer():
 
         os.makedirs(saveDir, exist_ok=True)
         for i, (imageFile, image) in enumerate(imagesGenerator):
-            # TODO: use small masks!!!!!!
-            r = model.detect([image])[0]
+            r = model.detect_minimasks([image])[0]
             nameWithoutExt = os.path.splitext(imageFile)[0]
             outFile = os.path.join(saveDir, nameWithoutExt + '.pickle')
-            with open(outFile, 'wb') as f:
-                pickle.dump(r, f, pickle.HIGHEST_PROTOCOL)
+            Utils.savePickle(r, outFile)
             if i > 0 and i % 50 == 0:
                 print(f'{i} images processed')
 

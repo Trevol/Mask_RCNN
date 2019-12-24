@@ -61,7 +61,7 @@ def main_train():
 
     startWithVisualization = parser.parse_args().start == 'vis'
     trainer.trainingLoop(startWithVisualization)
-    # trainer.visualizePredictability()
+    trainer.visualizePredictability()
 
 
 def main_explore_dataset():
@@ -69,7 +69,7 @@ def main_explore_dataset():
     Utils.exploreDatasets(trainingDataset, validationDataset)
 
 
-def saveOrShowDetections():
+def saveOrShowDetections(save, saveStep, show, showInReverseOrder):
     from samples.iterative_training.IterativeTrainer import IterativeTrainer
     inferenceConfig = RoughAnnotatedPinsInferenceConfig()
     trainer = IterativeTrainer(None, None, None, None, inferenceConfig, None)
@@ -78,14 +78,15 @@ def saveOrShowDetections():
     imagesDirs = ['/home/trevol/HDD_DATA/Computer_Vision_Task/frames_6']
     imageExt = 'jpg'
 
-    # imagesGen = imagesGenerator(False, 1000, imagesDirs, imageExt)
-    # trainer.saveDetections(imagesGen, saveDir)
-
-    trainer.showSavedDetections(saveDir, True, imagesDirs, imageExt, 1)
+    if save:
+        imagesGen = imagesGenerator(False, saveStep, imagesDirs, imageExt)
+        trainer.saveDetections(imagesGen, saveDir)
+    if show:
+        trainer.showSavedDetections(saveDir, showInReverseOrder, imagesDirs, imageExt, 1)
 
 
 # main_explore_dataset()
-# saveOrShowDetections()
-main_train()
+saveOrShowDetections(save=False, saveStep=1, show=True, showInReverseOrder=False)
+# main_train()
 
 # export PYTHONPATH=$PYTHONPATH:../../../..

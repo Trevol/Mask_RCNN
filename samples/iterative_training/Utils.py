@@ -5,9 +5,73 @@ import numpy as np
 import os
 import pickle
 
+
 class Utils:
     @staticmethod
-    def display_instances(image, boxes, masks, class_ids, scores):
+    def applyMiniMasks_alpha(image, bboxes, masks, colorMap, alpha=.5):
+        for i, ((y1, x1, y2, x2), mask) in enumerate(zip(bboxes, masks)):
+            color = colorMap[i]
+            patch = image[y1:y2, x1:x2].copy()
+            patch[mask] = color
+            cv2.addWeighted(image[y1:y2, x1:x2], alpha, patch, 1 - alpha, 0,
+                            dst=image[y1:y2, x1:x2], dtype=cv2.CV_8U)
+        return image
+
+    @staticmethod
+    def applyMiniMasks(image, bboxes, masks, colorMap):
+        for i, ((y1, x1, y2, x2), mask) in enumerate(zip(bboxes, masks)):
+            color = colorMap[i]
+            image[y1:y2, x1:x2][mask] = color
+        return image
+
+    @staticmethod
+    def display_instances(image, boxes, miniMasks, class_ids, scores):
+        """
+        boxes: [num_instance, (y1, x1, y2, x2, class_id)] in image coordinates.
+        masks: [height, width, num_instances]
+        class_ids: [num_instances]
+        class_names: list of class names of the dataset
+        scores: (optional) confidence scores for each box
+        title: (optional) Figure title
+        show_mask, show_bbox: To show masks and bounding boxes or not
+        figsize: (optional) the size of the image
+        colors: (optional) An array or colors to use with each object
+        captions: (optional) A list of strings to use as captions for each object
+        """
+        # Number of instances
+        N = boxes.shape[0]
+        if not N:
+            print("\n*** No instances to display *** \n")
+            return image
+        else:
+            assert boxes.shape[0] == len(miniMasks) == class_ids.shape[0]
+
+        # Generate random colors
+        colors = Utils.random_colors(256)
+
+        masked_image = image
+        masked_image = Utils.applyMiniMasks_alpha(masked_image, boxes, miniMasks, colors)
+
+        for i in range(N):
+            if not np.any(boxes[i]):
+                continue
+            y1, x1, y2, x2 = boxes[i]
+            cv2.rectangle(masked_image, (x1, y1), (x2, y2), colors[i], 1)
+
+            classId = class_ids[i]
+            score = scores[i]
+            score = int(score * 100)
+            if score == 100:
+                instanceLabel = f'{classId}'
+            else:
+                instanceLabel = f'{classId}/{score}'
+            cv2.putText(masked_image, instanceLabel, ((x1 + x2) // 2, (y1 + y2) // 2),
+                        cv2.FONT_HERSHEY_SIMPLEX, .4, (255, 255, 255))
+
+        return masked_image
+
+    @staticmethod
+    def display_instances_fullsizedMasks(image, boxes, masks, class_ids, scores):
         """
         boxes: [num_instance, (y1, x1, y2, x2, class_id)] in image coordinates.
         masks: [height, width, num_instances]
@@ -33,7 +97,7 @@ class Utils:
         colorMap = np.reshape(colors, [256, 1, 3]).astype(np.uint8)
 
         masked_image = image
-        masked_image = Utils.applyMasks(masked_image, masks, colorMap)
+        masked_image = Utils.applyFullsizedMasks(masked_image, masks, colorMap)
 
         for i in range(N):
             if not np.any(boxes[i]):
@@ -54,7 +118,7 @@ class Utils:
         return masked_image
 
     @staticmethod
-    def applyMasks(image, masks, colorMap, alpha=.5):
+    def applyFullsizedMasks(image, masks, colorMap, alpha=.5):
         if colorMap is None:
             colorMap = Utils.createColorMap()
         zeroInstanceMask = masks[..., 0]
@@ -66,15 +130,6 @@ class Utils:
         coloredInstances = cv2.applyColorMap(instanceIndexes, colorMap)
         blendedAndMasked = cv2.addWeighted(image, 1 - alpha, coloredInstances, alpha, 0)[instancesMask]
         image[instancesMask] = blendedAndMasked
-        return image
-
-    @staticmethod
-    def apply_mask_slow(image, mask, color, alpha=0.5):
-        for c in range(3):
-            image[:, :, c] = np.where(mask,
-                                      image[:, :, c] *
-                                      (1 - alpha) + alpha * color[c],
-                                      image[:, :, c])
         return image
 
     @staticmethod
@@ -115,7 +170,7 @@ class Utils:
                 fileName = dataset.image_annotation(imageId).name
                 masks, classIds = dataset.load_mask(imageId)
 
-                instancesImage = Utils.applyMasks(image.copy(), masks, colorMap=None)
+                instancesImage = Utils.applyFullsizedMasks(image.copy(), masks, colorMap=None)
                 cv2.imshow('Instances', Utils.rgb2bgr(instancesImage))
                 cv2.setWindowTitle('Instances', fileName)
                 cv2.waitKey()
@@ -140,6 +195,7 @@ class Utils:
     def loadPickle(picklePath):
         with open(picklePath, 'rb') as f:
             return pickle.load(f)
+
 
 class contexts:
     def __init__(self, *contextObjects):
