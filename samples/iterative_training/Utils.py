@@ -24,8 +24,8 @@ class Utils:
             image[y1:y2, x1:x2][mask] = color
         return image
 
-    @staticmethod
-    def display_instances(image, boxes, miniMasks, class_ids, scores):
+    @classmethod
+    def display_instances(cls, image, boxes, miniMasks, class_ids, scores):
         """
         boxes: [num_instance, (y1, x1, y2, x2, class_id)] in image coordinates.
         masks: [height, width, num_instances]
@@ -50,7 +50,7 @@ class Utils:
         colors = Utils.random_colors(256)
 
         masked_image = image
-        masked_image = Utils.applyMiniMasks_alpha(masked_image, boxes, miniMasks, colors)
+        masked_image = cls.applyMiniMasks_alpha(masked_image, boxes, miniMasks, colors)
 
         for i in range(N):
             if not np.any(boxes[i]):
