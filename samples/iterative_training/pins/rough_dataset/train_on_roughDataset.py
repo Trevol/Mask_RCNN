@@ -38,14 +38,24 @@ def prepareTrainerInput():
     trainAnnotationFile2 = os.path.join(dataDir, '6_8_point_pin_train_2.xml')
     trainLabels2, trainImageAnnotations2 = CvatAnnotation.parse(trainAnnotationFile2)
 
+    trainAnnotationFile3 = os.path.join(dataDir, '7_8_point_pin_train_3.xml')
+    trainLabels3, trainImageAnnotations3 = CvatAnnotation.parse(trainAnnotationFile3)
+
     valAnnotationFile = os.path.join(dataDir, '5_8_point_pin_val.xml')
     valLabels, valImageAnnotations = CvatAnnotation.parse(valAnnotationFile)
-    assert trainLabels == valLabels
+
+    valAnnotationFile2 = os.path.join(dataDir, '7_8_point_pin_val_3.xml')
+    valLabels2, valImageAnnotations2 = CvatAnnotation.parse(valAnnotationFile2)
+
     assert trainLabels == labels
     assert trainLabels2 == labels
+    assert trainLabels3 == labels
+    assert valLabels == labels
+    assert valLabels2 == labels
 
-    trainingDataset = PinsDataset(labels, [imagesDir, dataDir], trainImageAnnotations + trainImageAnnotations2)
-    validationDataset = PinsDataset(labels, [imagesDir, dataDir], valImageAnnotations)
+    trainingDataset = PinsDataset(labels, [imagesDir, dataDir],
+                                  trainImageAnnotations + trainImageAnnotations2 + trainImageAnnotations3)
+    validationDataset = PinsDataset(labels, [imagesDir, dataDir], valImageAnnotations + valImageAnnotations2)
 
     return trainingDataset, validationDataset, imagesGenerator(True, 10, [imagesDir],
                                                                'jpg'), trainingConfig, inferenceConfig
@@ -61,7 +71,7 @@ def main_train():
 
     startWithVisualization = parser.parse_args().start == 'vis'
     trainer.trainingLoop(startWithVisualization)
-    trainer.visualizePredictability()
+    # trainer.visualizePredictability()
 
 
 def main_explore_dataset():
@@ -86,7 +96,7 @@ def saveOrShowDetections(save, saveStep, show, showInReverseOrder):
 
 
 # main_explore_dataset()
-saveOrShowDetections(save=False, saveStep=1, show=True, showInReverseOrder=False)
-# main_train()
+# saveOrShowDetections(save=False, saveStep=1, show=True, showInReverseOrder=False)
+main_train()
 
 # export PYTHONPATH=$PYTHONPATH:../../../..

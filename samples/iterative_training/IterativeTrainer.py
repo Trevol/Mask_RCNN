@@ -1,6 +1,4 @@
 import os
-from time import sleep
-
 import cv2
 import numpy as np
 
@@ -11,6 +9,13 @@ from samples.iterative_training.Utils import Utils, contexts
 
 
 class IterativeTrainer():
+    classColors = [
+        None,  # 0
+        (0, 0, 255),  # 1 - pin RGB  BGR
+        (0, 255, 0),  # 2 - solder
+
+    ]
+
     def __init__(self, trainingDataset, validationDataset, testingGenerator, trainingConfig, inferenceConfig,
                  initialWeights, modelDir='./logs'):
         self.initialWeights = initialWeights
@@ -87,8 +92,8 @@ class IterativeTrainer():
                     with timeit():
                         r = inferenceModel.detect_minimasks([image])[0]
                     boxes, masks, classIds, scores = r['rois'], r['masks'], r['class_ids'], r['scores']
-                    instancesImage = Utils.display_instances(image.copy(), boxes, masks, classIds, scores)
-
+                    instancesImage = Utils.display_instances(image.copy(), boxes, masks, classIds, scores,
+                                                             'classes', self.classColors)
                     predWindow.imshow(instancesImage)
                     predWindow.setTitle(f'{imageFile} Predictability {weightsFile}')
                     origWindow.imshow(image)
@@ -127,7 +132,6 @@ class IterativeTrainer():
 
     #############
     def saveDetections(self, imagesGenerator, saveDir):
-        import pickle
         model, weights = self.getInferenceModel(loadLastWeights=True)
         print('Using weights ', weights)
 
@@ -141,7 +145,7 @@ class IterativeTrainer():
                 print(f'{i} images processed')
 
     def showSavedDetections(self, saveDir, inReverseOrder, imagesDirs, imageExt, step):
-        import glob, cv2
+        import glob
 
         def genDetectionsAndImage():
             picklePaths = glob.glob(os.path.join(saveDir, '*.pickle'), recursive=False)
@@ -155,8 +159,8 @@ class IterativeTrainer():
 
         with contexts(ImshowWindow('Predictability'), ImshowWindow('Original')) as (instancesWindow, origWindow):
             for boxes, masks, classIds, scores, image, imageFileName in genDetectionsAndImage():
-                instancesImage = Utils.display_instances(image.copy(), boxes, masks, classIds, scores)
-
+                instancesImage = Utils.display_instances(image.copy(), boxes, masks, classIds, scores,
+                                                         'classes', self.classColors)
                 instancesWindow.imshow(instancesImage, imgInRgb=False)
                 instancesWindow.setTitle(f'{imageFileName}')
                 origWindow.imshow(image, imgInRgb=False)

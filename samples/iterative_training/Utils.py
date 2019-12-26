@@ -24,41 +24,55 @@ class Utils:
             image[y1:y2, x1:x2][mask] = color
         return image
 
+    @staticmethod
+    def createInstanceColors(n, instancesClassIds, mode, colors=None):
+        assert n > 0
+        assert instancesClassIds.shape[0] == n
+        assert mode in ['instances', 'classes']
+        assert colors is None or isinstance(colors, (int, tuple, list))
+
+        if mode == 'instances':
+            if colors is None:
+                return Utils.random_colors(n)
+            if isinstance(colors, (int, tuple)):  # single color for all instances
+                return [colors] * n
+            # colors is list => user mappings for each instance
+            assert len(colors) >= n
+            return colors
+
+        if mode == 'classes':  # prepare list of
+            if isinstance(colors, (int, tuple)):  # single color for all instances
+                return [colors] * n
+            maxClassId = np.max(instancesClassIds)
+            if colors is None:
+                classColors = Utils.random_colors(maxClassId + 1)
+                return [classColors[i] for i in instancesClassIds]  # map instance => classId => color
+            # colors is list => user mappings for each class
+            assert len(colors) > maxClassId
+            return [colors[i] for i in instancesClassIds]  # map instance => classId => color
+
+        raise Exception('Unexpected Params')
+
     @classmethod
-    def display_instances(cls, image, boxes, miniMasks, class_ids, scores):
-        """
-        boxes: [num_instance, (y1, x1, y2, x2, class_id)] in image coordinates.
-        masks: [height, width, num_instances]
-        class_ids: [num_instances]
-        class_names: list of class names of the dataset
-        scores: (optional) confidence scores for each box
-        title: (optional) Figure title
-        show_mask, show_bbox: To show masks and bounding boxes or not
-        figsize: (optional) the size of the image
-        colors: (optional) An array or colors to use with each object
-        captions: (optional) A list of strings to use as captions for each object
-        """
-        # Number of instances
-        N = boxes.shape[0]
+    def display_instances(cls, image, boxes, miniMasks, instancesClassIds, scores, mode='instances', colors=None):
+        assert mode in ('instances', 'classes')
+        N = boxes.shape[0]  # Number of instances
         if not N:
             print("\n*** No instances to display *** \n")
             return image
-        else:
-            assert boxes.shape[0] == len(miniMasks) == class_ids.shape[0]
+        assert boxes.shape[0] == len(miniMasks) == instancesClassIds.shape[0]
 
         # Generate random colors
-        colors = Utils.random_colors(256)
+        colors = cls.createInstanceColors(N, instancesClassIds, mode, colors)
 
         masked_image = image
         masked_image = cls.applyMiniMasks_alpha(masked_image, boxes, miniMasks, colors)
 
         for i in range(N):
-            if not np.any(boxes[i]):
-                continue
             y1, x1, y2, x2 = boxes[i]
             cv2.rectangle(masked_image, (x1, y1), (x2, y2), colors[i], 1)
 
-            classId = class_ids[i]
+            classId = instancesClassIds[i]
             score = scores[i]
             score = int(score * 100)
             if score == 100:
