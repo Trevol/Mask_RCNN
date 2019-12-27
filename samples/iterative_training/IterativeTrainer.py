@@ -9,9 +9,9 @@ from samples.iterative_training.Utils import Utils, contexts
 
 
 class IterativeTrainer():
-    classColors = [
+    classBGR = [
         None,  # 0
-        (0, 0, 255),  # 1 - pin RGB  BGR
+        (0, 255, 255),  # 1 - pin RGB  BGR
         (0, 255, 0),  # 2 - solder
 
     ]
@@ -89,11 +89,10 @@ class IterativeTrainer():
                 for i, (imageFile, image) in enumerate(imageGenerator):
                     predWindow.setBusy()
                     origWindow.setBusy()
-                    with timeit():
-                        r = inferenceModel.detect_minimasks([image])[0]
+                    r = inferenceModel.detect_minimasks([image])[0]
                     boxes, masks, classIds, scores = r['rois'], r['masks'], r['class_ids'], r['scores']
                     instancesImage = Utils.display_instances(image.copy(), boxes, masks, classIds, scores,
-                                                             'classes', self.classColors)
+                                                             'classes', self.classBGR)
                     predWindow.imshow(instancesImage)
                     predWindow.setTitle(f'{imageFile} Predictability {weightsFile}')
                     origWindow.imshow(image)
@@ -144,10 +143,9 @@ class IterativeTrainer():
             if i > 0 and i % 50 == 0:
                 print(f'{i} images processed')
 
-    def showSavedDetections(self, saveDir, inReverseOrder, imagesDirs, imageExt, step):
-        import glob
-
+    def showSavedDetections(self, saveDir, inReverseOrder, imagesDirs, imageExt, step, saveVisualizationToDir=None):
         def genDetectionsAndImage():
+            import glob
             picklePaths = glob.glob(os.path.join(saveDir, '*.pickle'), recursive=False)
             for picklePath in sorted(picklePaths, reverse=inReverseOrder)[::step]:
                 r = Utils.loadPickle(picklePath)
@@ -157,15 +155,38 @@ class IterativeTrainer():
                 image = cv2.imread(imagePath)
                 yield boxes, masks, classIds, scores, image, imageFileName
 
-        with contexts(ImshowWindow('Predictability'), ImshowWindow('Original')) as (instancesWindow, origWindow):
-            for boxes, masks, classIds, scores, image, imageFileName in genDetectionsAndImage():
-                instancesImage = Utils.display_instances(image.copy(), boxes, masks, classIds, scores,
-                                                         'classes', self.classColors)
-                instancesWindow.imshow(instancesImage, imgInRgb=False)
-                instancesWindow.setTitle(f'{imageFileName}')
-                origWindow.imshow(image, imgInRgb=False)
-                origWindow.setTitle(f'{imageFileName}')
+        def showDetections():
+            with contexts(ImshowWindow('Predictability'), ImshowWindow('Original')) as (instancesWindow, origWindow):
+                for boxes, masks, classIds, scores, image, imageFileName in genDetectionsAndImage():
+                    instancesImage = Utils.display_instances(image.copy(), boxes, masks, classIds, scores,
+                                                             'classes', self.classBGR)
+                    instancesWindow.imshow(instancesImage, imgInRgb=False)
+                    instancesWindow.setTitle(f'{imageFileName}')
+                    origWindow.imshow(image, imgInRgb=False)
+                    origWindow.setTitle(f'{imageFileName}')
 
-                key = cv2.waitKey(10000)
-                if key == 27:
-                    return 'esc'
+                    key = cv2.waitKey(10000)
+                    if key == 27:
+                        return 'esc'
+
+        def saveVisualizations():
+            assert saveVisualizationToDir
+            JP = os.path.join
+            withBoxesDir = JP(saveVisualizationToDir, 'withBoxes')
+            onlyMasksDir = JP(saveVisualizationToDir, 'onlyMasks')
+            os.makedirs(withBoxesDir, exist_ok=True)
+            os.makedirs(onlyMasksDir, exist_ok=True)
+            for i, (boxes, masks, classIds, scores, image, imageFileName) in enumerate(genDetectionsAndImage()):
+                imageWithBoxes = Utils.display_instances(image.copy(), boxes, masks, classIds, scores,
+                                                         'classes', self.classBGR, True, True, True)
+                imageOnlyMasks = Utils.display_instances(image.copy(), boxes, masks, classIds, scores,
+                                                         'classes', self.classBGR, False, True, False)
+                cv2.imwrite(JP(withBoxesDir, imageFileName), imageWithBoxes)
+                cv2.imwrite(JP(onlyMasksDir, imageFileName), imageOnlyMasks)
+                if i > 0 and i % 50 == 0:
+                    print(f'{i} images processed')
+
+        if saveVisualizationToDir:
+            saveVisualizations()
+        else:
+            showDetections()

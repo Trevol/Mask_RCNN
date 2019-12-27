@@ -54,11 +54,13 @@ class Utils:
         raise Exception('Unexpected Params')
 
     @classmethod
-    def display_instances(cls, image, boxes, miniMasks, instancesClassIds, scores, mode='instances', colors=None):
+    def display_instances(cls, image, boxes, miniMasks, instancesClassIds, scores, mode='instances', colors=None,
+                          displayBoxes=True, displayMasks=True, displayClassLabel=True):
+        if not (displayMasks or displayBoxes or displayClassLabel):
+            return image
         assert mode in ('instances', 'classes')
         N = boxes.shape[0]  # Number of instances
         if not N:
-            print("\n*** No instances to display *** \n")
             return image
         assert boxes.shape[0] == len(miniMasks) == instancesClassIds.shape[0]
 
@@ -66,21 +68,23 @@ class Utils:
         colors = cls.createInstanceColors(N, instancesClassIds, mode, colors)
 
         masked_image = image
-        masked_image = cls.applyMiniMasks_alpha(masked_image, boxes, miniMasks, colors)
+        if displayMasks:
+            masked_image = cls.applyMiniMasks_alpha(masked_image, boxes, miniMasks, colors)
 
         for i in range(N):
             y1, x1, y2, x2 = boxes[i]
-            cv2.rectangle(masked_image, (x1, y1), (x2, y2), colors[i], 1)
-
-            classId = instancesClassIds[i]
-            score = scores[i]
-            score = int(score * 100)
-            if score == 100:
-                instanceLabel = f'{classId}'
-            else:
-                instanceLabel = f'{classId}/{score}'
-            cv2.putText(masked_image, instanceLabel, ((x1 + x2) // 2, (y1 + y2) // 2),
-                        cv2.FONT_HERSHEY_SIMPLEX, .4, (255, 255, 255))
+            if displayBoxes:
+                cv2.rectangle(masked_image, (x1, y1), (x2, y2), colors[i], 1)
+            if displayClassLabel:
+                classId = instancesClassIds[i]
+                score = scores[i]
+                score = int(score * 100)
+                if score == 100:
+                    instanceLabel = f'{classId}'
+                else:
+                    instanceLabel = f'{classId}/{score}'
+                cv2.putText(masked_image, instanceLabel, ((x1 + x2) // 2, (y1 + y2) // 2),
+                            cv2.FONT_HERSHEY_SIMPLEX, .4, (255, 255, 255))
 
         return masked_image
 

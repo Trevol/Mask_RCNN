@@ -41,21 +41,30 @@ def prepareTrainerInput():
     trainAnnotationFile3 = os.path.join(dataDir, '7_8_point_pin_train_3.xml')
     trainLabels3, trainImageAnnotations3 = CvatAnnotation.parse(trainAnnotationFile3)
 
+    trainAnnotationFile4 = os.path.join(dataDir, '9_8_point_pin_train_4.xml')
+    trainLabels4, trainImageAnnotations4 = CvatAnnotation.parse(trainAnnotationFile4)
+
     valAnnotationFile = os.path.join(dataDir, '5_8_point_pin_val.xml')
     valLabels, valImageAnnotations = CvatAnnotation.parse(valAnnotationFile)
 
-    valAnnotationFile2 = os.path.join(dataDir, '7_8_point_pin_val_3.xml')
-    valLabels2, valImageAnnotations2 = CvatAnnotation.parse(valAnnotationFile2)
+    valAnnotationFile3 = os.path.join(dataDir, '7_8_point_pin_val_3.xml')
+    valLabels3, valImageAnnotations3 = CvatAnnotation.parse(valAnnotationFile3)
+
+    valAnnotationFile4 = os.path.join(dataDir, '9_8_point_pin_val_4.xml')
+    valLabels4, valImageAnnotations4 = CvatAnnotation.parse(valAnnotationFile4)
 
     assert trainLabels == labels
     assert trainLabels2 == labels
     assert trainLabels3 == labels
+    assert trainLabels4 == labels
     assert valLabels == labels
-    assert valLabels2 == labels
+    assert valLabels3 == labels
+    assert valLabels4 == labels
 
     trainingDataset = PinsDataset(labels, [imagesDir, dataDir],
-                                  trainImageAnnotations + trainImageAnnotations2 + trainImageAnnotations3)
-    validationDataset = PinsDataset(labels, [imagesDir, dataDir], valImageAnnotations + valImageAnnotations2)
+                                  trainImageAnnotations + trainImageAnnotations2 + trainImageAnnotations3 + trainImageAnnotations4)
+    validationDataset = PinsDataset(labels, [imagesDir, dataDir],
+                                    valImageAnnotations + valImageAnnotations3 + valImageAnnotations4)
 
     return trainingDataset, validationDataset, imagesGenerator(True, 10, [imagesDir],
                                                                'jpg'), trainingConfig, inferenceConfig
@@ -95,8 +104,22 @@ def saveOrShowDetections(save, saveStep, show, showInReverseOrder):
         trainer.showSavedDetections(saveDir, showInReverseOrder, imagesDirs, imageExt, 1)
 
 
-# main_explore_dataset()
+def saveVisualizedDetections():
+    from samples.iterative_training.IterativeTrainer import IterativeTrainer
+    inferenceConfig = RoughAnnotatedPinsInferenceConfig()
+    trainer = IterativeTrainer(None, None, None, None, inferenceConfig, None)
+
+    saveDir = '/home/trevol/HDD_DATA/TMP/frames/detect_all'
+    saveVisualizationToDir = '/home/trevol/HDD_DATA/TMP/frames/detect_all_visualization'
+    imagesDirs = ['/home/trevol/HDD_DATA/Computer_Vision_Task/frames_6']
+    imageExt = 'jpg'
+
+    trainer.showSavedDetections(saveDir, False, imagesDirs, imageExt, step=1,
+                                saveVisualizationToDir=saveVisualizationToDir)
+
+# saveVisualizedDetections()
 # saveOrShowDetections(save=False, saveStep=1, show=True, showInReverseOrder=False)
+# main_explore_dataset()
 main_train()
 
 # export PYTHONPATH=$PYTHONPATH:../../../..

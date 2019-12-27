@@ -32,27 +32,20 @@ def main_load_and_display_minimasks(pickleFile, imageFile):
 
     image = skimage.io.imread(imageFile)
 
-    # TODO: display classes
-    print(np.unique(classIds))
-
-    classColors = [
+    classRGB = [
         None,  # 0
-        (255, 0, 0),  # 1 - pin
+        (255, 255, 0),  # 1 - pin
         (0, 255, 0),  # 2 - solder
 
     ]
 
-    copy = image.copy()
-    with timeit('applyBboxMasks_alpha'):
-        # instancesImage = Utils.applyMiniMasks_alpha(copy, boxes, masks, colors)
-        instancesImage = Utils.display_instances(copy, boxes, masks, classIds, scores, mode='classes',
-                                                 colors=classColors)
+    instancesImage = Utils.display_instances(image, boxes, masks, classIds, scores, 'classes', classRGB)
 
     ImshowWindow('').imshow(instancesImage)
     cv2.waitKey()
 
 
 pickleFile = 'minimasks.pickle'
-imageFile = 'f_1946_129733.33_129.73.jpg' #'f_1955_130333.33_130.33.jpg' # 'f_7926_528400.00_528.40.jpg'
-main_predict_and_save_minimasks(pickleFile, imageFile)
+imageFile = 'f_1946_129733.33_129.73.jpg'  # 'f_1955_130333.33_130.33.jpg' # 'f_7926_528400.00_528.40.jpg'
+# main_predict_and_save_minimasks(pickleFile, imageFile)
 main_load_and_display_minimasks(pickleFile, imageFile)
