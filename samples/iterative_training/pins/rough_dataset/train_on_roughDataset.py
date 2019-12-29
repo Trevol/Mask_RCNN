@@ -32,39 +32,28 @@ def prepareTrainerInput():
     imagesDir = '/home/trevol/HDD_DATA/Computer_Vision_Task/frames_6'
     dataDir = './data'
 
-    trainAnnotationFile = os.path.join(dataDir, '4_8_point_pin_train.xml')
-    trainLabels, trainImageAnnotations = CvatAnnotation.parse(trainAnnotationFile)
+    trainXmlAnnotations = ['4_8_point_pin_train.xml', '6_8_point_pin_train_2.xml',
+                           '7_8_point_pin_train_3.xml', '9_8_point_pin_train_4.xml',
+                           '10_8_point_pin_train_5.xml']
+    valXmlAnnotations = ['5_8_point_pin_val.xml', '7_8_point_pin_val_3.xml',
+                         '9_8_point_pin_val_4.xml', '10_8_point_pin_val_5.xml']
 
-    trainAnnotationFile2 = os.path.join(dataDir, '6_8_point_pin_train_2.xml')
-    trainLabels2, trainImageAnnotations2 = CvatAnnotation.parse(trainAnnotationFile2)
+    pjn = os.path.join
+    trainLabelsAndImageAnnotations = [CvatAnnotation.parse(pjn(dataDir, x)) for x in trainXmlAnnotations]
+    valLabelsAndImageAnnotations = [CvatAnnotation.parse(pjn(dataDir, x)) for x in valXmlAnnotations]
 
-    trainAnnotationFile3 = os.path.join(dataDir, '7_8_point_pin_train_3.xml')
-    trainLabels3, trainImageAnnotations3 = CvatAnnotation.parse(trainAnnotationFile3)
+    trainImageAnnotations = []
+    for annotLabels, imageAnnotations in trainLabelsAndImageAnnotations:
+        assert annotLabels == labels
+        trainImageAnnotations.extend(imageAnnotations)
 
-    trainAnnotationFile4 = os.path.join(dataDir, '9_8_point_pin_train_4.xml')
-    trainLabels4, trainImageAnnotations4 = CvatAnnotation.parse(trainAnnotationFile4)
+    valImageAnnotations = []
+    for annotLabels, imageAnnotations in valLabelsAndImageAnnotations:
+        assert annotLabels == labels
+        valImageAnnotations.extend(imageAnnotations)
 
-    valAnnotationFile = os.path.join(dataDir, '5_8_point_pin_val.xml')
-    valLabels, valImageAnnotations = CvatAnnotation.parse(valAnnotationFile)
-
-    valAnnotationFile3 = os.path.join(dataDir, '7_8_point_pin_val_3.xml')
-    valLabels3, valImageAnnotations3 = CvatAnnotation.parse(valAnnotationFile3)
-
-    valAnnotationFile4 = os.path.join(dataDir, '9_8_point_pin_val_4.xml')
-    valLabels4, valImageAnnotations4 = CvatAnnotation.parse(valAnnotationFile4)
-
-    assert trainLabels == labels
-    assert trainLabels2 == labels
-    assert trainLabels3 == labels
-    assert trainLabels4 == labels
-    assert valLabels == labels
-    assert valLabels3 == labels
-    assert valLabels4 == labels
-
-    trainingDataset = PinsDataset(labels, [imagesDir, dataDir],
-                                  trainImageAnnotations + trainImageAnnotations2 + trainImageAnnotations3 + trainImageAnnotations4)
-    validationDataset = PinsDataset(labels, [imagesDir, dataDir],
-                                    valImageAnnotations + valImageAnnotations3 + valImageAnnotations4)
+    trainingDataset = PinsDataset(labels, [imagesDir, dataDir], trainImageAnnotations)
+    validationDataset = PinsDataset(labels, [imagesDir, dataDir], valImageAnnotations)
 
     return trainingDataset, validationDataset, imagesGenerator(True, 10, [imagesDir],
                                                                'jpg'), trainingConfig, inferenceConfig
@@ -117,9 +106,11 @@ def saveVisualizedDetections():
     trainer.showSavedDetections(saveDir, False, imagesDirs, imageExt, step=1,
                                 saveVisualizationToDir=saveVisualizationToDir)
 
-# saveVisualizedDetections()
-# saveOrShowDetections(save=False, saveStep=1, show=True, showInReverseOrder=False)
+
+saveOrShowDetections(save=True, saveStep=1, show=False, showInReverseOrder=False)
+saveVisualizedDetections()
+
 # main_explore_dataset()
-main_train()
+# main_train()
 
 # export PYTHONPATH=$PYTHONPATH:../../../..
