@@ -89,10 +89,13 @@ def main_explore_dataset():
 def saveOrShowDetections(save, saveStep, show, showInReverseOrder):
     from samples.iterative_training.IterativeTrainer import IterativeTrainer
     inferenceConfig = RoughAnnotatedPinsInferenceConfig()
-    trainer = IterativeTrainer(None, None, None, None, inferenceConfig, None)
+    modelDir = os.path.join(nodeConfig.workingDir, 'logs')
+    trainer = IterativeTrainer(None, None, None, None, inferenceConfig, None, modelDir, False)
 
-    saveDir = '/home/trevol/HDD_DATA/TMP/frames/detect_all'
-    imagesDirs = ['/home/trevol/HDD_DATA/Computer_Vision_Task/frames_6']
+    # saveDir = '/home/trevol/HDD_DATA/TMP/frames/detect_all'
+    saveDir = os.path.join(nodeConfig.workingDir, 'detect_all')
+    # imagesDirs = ['/home/trevol/HDD_DATA/Computer_Vision_Task/frames_6']
+    imagesDirs = [os.path.join(nodeConfig.workingDir, 'frames_6')]
     imageExt = 'jpg'
 
     if save:
@@ -105,21 +108,24 @@ def saveOrShowDetections(save, saveStep, show, showInReverseOrder):
 def saveVisualizedDetections():
     from samples.iterative_training.IterativeTrainer import IterativeTrainer
     inferenceConfig = RoughAnnotatedPinsInferenceConfig()
-    trainer = IterativeTrainer(None, None, None, None, inferenceConfig, None)
+    trainer = IterativeTrainer(None, None, None, None, inferenceConfig, None, modelDir=None, visualize=False)
 
-    saveDir = '/home/trevol/HDD_DATA/TMP/frames/detect_all'
-    saveVisualizationToDir = '/home/trevol/HDD_DATA/TMP/frames/detect_all_visualization'
-    imagesDirs = ['/home/trevol/HDD_DATA/Computer_Vision_Task/frames_6']
+    # saveDir = '/home/trevol/HDD_DATA/TMP/frames/detect_all'
+    saveDir = os.path.join(nodeConfig.workingDir, 'detect_all')
+    # saveVisualizationToDir = '/home/trevol/HDD_DATA/TMP/frames/detect_all_visualization'
+    saveVisualizationToDir = os.path.join(nodeConfig.workingDir, 'detect_all_visualization')
+    # imagesDirs = ['/home/trevol/HDD_DATA/Computer_Vision_Task/frames_6']
+    imagesDirs = [os.path.join(nodeConfig.workingDir, 'frames_6')]
     imageExt = 'jpg'
 
     trainer.showSavedDetections(saveDir, False, imagesDirs, imageExt, step=1,
                                 saveVisualizationToDir=saveVisualizationToDir)
 
 
-# saveOrShowDetections(save=True, saveStep=1, show=False, showInReverseOrder=False)
-# saveVisualizedDetections()
+saveOrShowDetections(save=True, saveStep=1, show=False, showInReverseOrder=False)
+saveVisualizedDetections()
 
 # main_explore_dataset()
-main_train()
+# main_train()
 
 # export PYTHONPATH=$PYTHONPATH:../../../..
