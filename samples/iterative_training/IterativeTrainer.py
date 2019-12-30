@@ -81,7 +81,7 @@ class IterativeTrainer():
     def visualizePredictability(self):
         if not self.visualize:
             # TODO: save some predictions to file system
-            return
+            return 'train'
         inferenceModel, weights = self.getInferenceModel(loadLastWeights=True)
         print('Using weights: ', weights)
         weightsFile = os.path.basename(weights)
