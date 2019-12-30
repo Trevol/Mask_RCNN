@@ -1,13 +1,12 @@
 import os
 
-from samples.iterative_training.ImshowWindow import ImshowWindow
-from samples.iterative_training.MaskRCNNEx import MaskRCNNEx
-from samples.iterative_training.Utils import Utils, contexts
+from samples.iterative_training.Utils import Utils
 from samples.iterative_training.pins.CvatAnnotation import CvatAnnotation
 from samples.iterative_training.pins.PinsDataset import PinsDataset
 from samples.iterative_training.arguments import parser
 from samples.iterative_training.pins.rough_dataset.RoughAnnotatedPinsConfig import RoughAnnotatedPinsConfig, \
     RoughAnnotatedPinsInferenceConfig
+from samples.iterative_training.pins.rough_dataset.node_config import nodeConfig
 
 
 def imagesGenerator(reverse, step, paths, ext):
@@ -23,13 +22,12 @@ def imagesGenerator(reverse, step, paths, ext):
             yield os.path.basename(imagePath), skimage.io.imread(imagePath)
 
 
-def prepareTrainerInput():
+def prepareTrainerInput(imagesDir):
     labels = ['pin', 'pin_w_solder']
 
     trainingConfig = RoughAnnotatedPinsConfig()
     inferenceConfig = RoughAnnotatedPinsInferenceConfig()
 
-    imagesDir = '/home/trevol/HDD_DATA/Computer_Vision_Task/frames_6'
     dataDir = './data'
 
     trainXmlAnnotations = ['4_8_point_pin_train.xml', '6_8_point_pin_train_2.xml',
@@ -60,12 +58,21 @@ def prepareTrainerInput():
 
 
 def main_train():
+    if not nodeConfig:
+        print('Node is not configured for training. Stopping...')
+        return
     from samples.iterative_training.IterativeTrainer import IterativeTrainer
-    trainingDataset, validationDataset, testingGenerator, trainingConfig, inferenceConfig = prepareTrainerInput()
-    initialWeights = '../../mask_rcnn_coco.h5'
+
+    initialWeights = os.path.join(nodeConfig.workingDir, 'mask_rcnn_coco.h5')
     # initialWeights = None
+    modelDir = os.path.join(nodeConfig.workingDir, 'logs')
+    imagesDir = os.path.join(nodeConfig.workingDir, 'frames_6')
+
+    trainingDataset, validationDataset, testingGenerator, trainingConfig, inferenceConfig = \
+        prepareTrainerInput(imagesDir)
+
     trainer = IterativeTrainer(trainingDataset, validationDataset, testingGenerator, trainingConfig, inferenceConfig,
-                               initialWeights=initialWeights)
+                               initialWeights=initialWeights, modelDir=modelDir, visualize=nodeConfig.visualize)
 
     startWithVisualization = parser.parse_args().start == 'vis'
     trainer.trainingLoop(startWithVisualization)
@@ -107,10 +114,10 @@ def saveVisualizedDetections():
                                 saveVisualizationToDir=saveVisualizationToDir)
 
 
-saveOrShowDetections(save=True, saveStep=1, show=False, showInReverseOrder=False)
-saveVisualizedDetections()
+# saveOrShowDetections(save=True, saveStep=1, show=False, showInReverseOrder=False)
+# saveVisualizedDetections()
 
 # main_explore_dataset()
-# main_train()
+main_train()
 
 # export PYTHONPATH=$PYTHONPATH:../../../..

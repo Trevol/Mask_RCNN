@@ -17,7 +17,8 @@ class IterativeTrainer():
     ]
 
     def __init__(self, trainingDataset, validationDataset, testingGenerator, trainingConfig, inferenceConfig,
-                 initialWeights, modelDir='./logs'):
+                 initialWeights, modelDir, visualize):
+        self.visualize = visualize
         self.initialWeights = initialWeights
         self.validationDataset = validationDataset
         self.trainingDataset = trainingDataset
@@ -78,6 +79,9 @@ class IterativeTrainer():
                              epochs=trainableModel.epoch + 1, layers='all')
 
     def visualizePredictability(self):
+        if not self.visualize:
+            # TODO: save some predictions to file system
+            return
         inferenceModel, weights = self.getInferenceModel(loadLastWeights=True)
         print('Using weights: ', weights)
         weightsFile = os.path.basename(weights)
