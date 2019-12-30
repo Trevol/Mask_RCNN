@@ -67,7 +67,8 @@ def main_train():
     # initialWeights = None
     modelDir = os.path.join(nodeConfig.workingDir, 'logs')
     imagesDir = os.path.join(nodeConfig.workingDir, 'frames_6')
-    RoughAnnotatedPinsInferenceConfig.IMAGES_PER_GPU = nodeConfig.IMAGES_PER_GPU
+    RoughAnnotatedPinsConfig.IMAGES_PER_GPU = nodeConfig.IMAGES_PER_GPU
+    RoughAnnotatedPinsConfig.LEARNING_RATE = 0.0001
 
     trainingDataset, validationDataset, testingGenerator, trainingConfig, inferenceConfig = \
         prepareTrainerInput(imagesDir)
