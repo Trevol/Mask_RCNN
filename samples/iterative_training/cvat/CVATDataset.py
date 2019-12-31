@@ -1,6 +1,3 @@
-# TODO: implement bounding box support
-# TODO: separate branch
-
 import cv2
 import numpy as np
 import skimage.color
@@ -26,20 +23,29 @@ class CVATDataset(utils.Dataset):
         return image
 
     @staticmethod
-    def makeMask(size, polygons, labels):
+    def makeMask(size, polygons, boxes, labels):
         polygons = [p for p in polygons if p.label in labels]
-        assert len(polygons) > 0
-        masks = [np.zeros(size, np.uint8) for _ in range(len(polygons))]
+        boxes = [b for b in boxes if b.label in labels]
+        assert len(polygons) > 0 or len(boxes) > 0
+
+        polyMasks = [np.zeros(size, np.uint8) for _ in range(len(polygons))]
         for i, p in enumerate(polygons):
-            cv2.fillPoly(masks[i], np.array([p.points]), 1)
-            # cv2.polylines(masks[i], np.array([p.points]), True, 1)
-        mask = np.dstack(masks).astype(np.bool)
+            cv2.fillPoly(polyMasks[i], np.array([p.points]), 1)
+
+        boxMasks = [np.zeros(size, np.uint8) for _ in range(len(boxes))]
+        for i, b in enumerate(boxes):
+            pt1 = b.xtl, b.ytl
+            pt2 = b.xbr, b.ybr
+            cv2.rectangle(boxMasks[i], pt1, pt2, 1, -1)
+
+        mask = np.dstack(polyMasks).astype(np.bool)
         # Map class names to class IDs.
         class_ids = np.array([labels.index(p.label) + 1 for p in polygons])
         return mask, class_ids.astype(np.int32)
 
-    def __init__(self, labels, imagesDirs, imageAnnotations):
+    def __init__(self, name, labels, imagesDirs, imageAnnotations):
         super(CVATDataset, self).__init__()
+        self.name = name
 
         assert imagesDirs is None or isinstance(imagesDirs, (str, list))
         if imagesDirs is None:
@@ -49,16 +55,16 @@ class CVATDataset(utils.Dataset):
 
         self.labels = labels
         for i, label in enumerate(labels):
-            self.add_class("pins", i, label)
+            self.add_class(name, i, label)
 
         for i, imageAnnotation in enumerate(imageAnnotations):
             imagePath = Utils.findFilePath(imagesDirs, imageAnnotation.name)
             if not imagePath:
                 raise Exception(f'Can not find {imageAnnotation.name}')
             image = self.loadImageByPath(imagePath)
-            mask = self.makeMask(image.shape[:2], imageAnnotation.polygons, labels)
+            mask = self.makeMask(image.shape[:2], imageAnnotation.polygons, imageAnnotation.boxes, labels)
 
-            self.add_image('pins', i, imagePath, annotation=imageAnnotation, image=image, mask=mask)
+            self.add_image(name, i, imagePath, annotation=imageAnnotation, image=image, mask=mask)
         self.prepare()
 
     def load_image(self, image_id):
@@ -67,8 +73,8 @@ class CVATDataset(utils.Dataset):
     def image_reference(self, image_id):
         """Return the shapes data of the image."""
         info = self.image_info[image_id]
-        if info["source"] == "pins":
-            return info["pins"]
+        if info["source"] == self.name:
+            return info[self.name]
         else:
             super(self.__class__).image_reference(self, image_id)
 
