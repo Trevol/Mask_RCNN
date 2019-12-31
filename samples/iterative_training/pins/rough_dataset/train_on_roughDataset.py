@@ -1,7 +1,7 @@
 import os
 
 from samples.iterative_training.Utils import Utils
-from samples.iterative_training.pins.CvatAnnotation import CvatAnnotation
+from samples.iterative_training.cvat.CvatAnnotation import CvatAnnotation
 from samples.iterative_training.pins.PinsDataset import PinsDataset
 from samples.iterative_training.arguments import parser
 from samples.iterative_training.pins.rough_dataset.RoughAnnotatedPinsConfig import RoughAnnotatedPinsConfig, \
