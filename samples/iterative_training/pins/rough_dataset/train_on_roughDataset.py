@@ -82,7 +82,8 @@ def main_train():
 
 
 def main_explore_dataset():
-    trainingDataset, validationDataset, testingGenerator, _, _ = prepareTrainerInput()
+    imagesDir = os.path.join(nodeConfig.workingDir, 'frames_6')
+    trainingDataset, validationDataset, testingGenerator, _, _ = prepareTrainerInput(imagesDir)
     Utils.exploreDatasets(trainingDataset, validationDataset)
 
 
@@ -122,10 +123,10 @@ def saveVisualizedDetections():
                                 saveVisualizationToDir=saveVisualizationToDir)
 
 
-saveOrShowDetections(save=True, saveStep=1, show=False, showInReverseOrder=False)
-saveVisualizedDetections()
+# saveOrShowDetections(save=True, saveStep=1, show=False, showInReverseOrder=False)
+# saveVisualizedDetections()
 
-# main_explore_dataset()
+main_explore_dataset()
 # main_train()
 
 # export PYTHONPATH=$PYTHONPATH:../../../..

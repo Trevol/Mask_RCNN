@@ -38,7 +38,7 @@ class CVATDataset(utils.Dataset):
             pt2 = b.xbr, b.ybr
             cv2.rectangle(boxMasks[i], pt1, pt2, 1, -1)
 
-        mask = np.dstack(polyMasks).astype(np.bool)
+        mask = np.dstack(polyMasks + boxMasks).astype(np.bool)
         # Map class names to class IDs.
         class_ids = np.array([labels.index(p.label) + 1 for p in polygons])
         return mask, class_ids.astype(np.int32)

@@ -16,7 +16,11 @@ class CvatAnnotation:
     class BoxAnnotation:
         def __init__(self, label, xtl, ytl, xbr, ybr):
             # <box label="pin-array" occluded="0" xtl="356.32" ytl="450.01" xbr="1587.91" ybr="877.64">
-            pass
+            self.ybr = ybr
+            self.xbr = xbr
+            self.ytl = ytl
+            self.xtl = xtl
+            self.label = label
 
     @classmethod
     def parse(cls, annotationFile):
