@@ -1,6 +1,3 @@
-# return platform.uname().node
-# import os
-# return os.uname().nodename
 from collections import namedtuple
 import platform
 
@@ -16,7 +13,7 @@ nodesConfigs = {
     "trevol-gpu-server": NodeConfig(
         framesDir="/trevol_gpu_nb_share/frames_6",
         workingDir="/trevol_gpu_nb_share/mask-rcnn/tracking_arms_forceps",
-        IMAGES_PER_GPU=2,
+        IMAGES_PER_GPU=4,
         visualize=False
     ),
 }
