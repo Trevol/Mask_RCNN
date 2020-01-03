@@ -4,20 +4,14 @@ import numpy as np
 
 from samples.iterative_training.ImshowWindow import ImshowWindow
 from samples.iterative_training.MaskRCNNEx import MaskRCNNEx
-from samples.iterative_training.Timer import timeit
 from samples.iterative_training.Utils import Utils, contexts
 
 
 class IterativeTrainer():
-    classBGR = [
-        None,  # 0
-        (0, 255, 255),  # 1 - pin RGB  BGR
-        (0, 255, 0),  # 2 - solder
-
-    ]
-
     def __init__(self, trainingDataset, validationDataset, testingGenerator, trainingConfig, inferenceConfig,
-                 initialWeights, modelDir, visualize):
+                 initialWeights, modelDir, visualize, classBGR, augmentation):
+        self.augmentation = augmentation
+        self.classBGR = classBGR
         self.visualize = visualize
         self.initialWeights = initialWeights
         self.validationDataset = validationDataset
@@ -37,8 +31,8 @@ class IterativeTrainer():
         dataset = self.validationDataset
         return dataset() if callable(dataset) else dataset
 
-    def getTestingGenerator(self):
-        generator = self.testingGenerator
+    def getTestingGenerator(self, outerGenerator):
+        generator = outerGenerator or self.testingGenerator
         return generator() if callable(generator) else generator
 
     def findLastWeights(self):
@@ -74,11 +68,17 @@ class IterativeTrainer():
         trainingDataset = self.getTrainingDataset()
         validationDataset = self.getValidationDataset()
         trainableModel.train(trainingDataset, validationDataset, self.trainingConfig.LEARNING_RATE,
-                             epochs=trainableModel.epoch + 1, layers='heads')
-        trainableModel.train(trainingDataset, validationDataset, self.trainingConfig.LEARNING_RATE / 10,
-                             epochs=trainableModel.epoch + 1, layers='all')
+                             epochs=trainableModel.epoch + 1, layers='heads', augmentation=self.augmentation)
+        # Training - Stage 2
+        # Finetune layers from ResNet stage 4 and up
+        trainableModel.train(trainingDataset, validationDataset, self.trainingConfig.LEARNING_RATE,
+                             epochs=trainableModel.epoch + 1, layers='4+',
+                             augmentation=self.augmentation)
 
-    def visualizePredictability(self):
+        trainableModel.train(trainingDataset, validationDataset, self.trainingConfig.LEARNING_RATE / 10,
+                             epochs=trainableModel.epoch + 1, layers='all', augmentation=self.augmentation)
+
+    def visualizePredictability(self, imageGenerator=None):
         if not self.visualize:
             # TODO: save some predictions to file system
             return 'train'
@@ -89,7 +89,7 @@ class IterativeTrainer():
         with contexts(ImshowWindow('Predictability'),
                       ImshowWindow('Original')) as (predWindow, origWindow):
             while True:
-                imageGenerator = self.getTestingGenerator()
+                imageGenerator = self.getTestingGenerator(imageGenerator)
                 for i, (imageFile, image) in enumerate(imageGenerator):
                     predWindow.setBusy()
                     origWindow.setBusy()

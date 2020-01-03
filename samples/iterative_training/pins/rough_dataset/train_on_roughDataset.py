@@ -57,6 +57,14 @@ def prepareTrainerInput(imagesDir):
                                                                'jpg'), trainingConfig, inferenceConfig
 
 
+classBGR = [
+    None,  # 0
+    (0, 255, 255),  # 1 - pin RGB  BGR
+    (0, 255, 0),  # 2 - solder
+
+]
+
+
 def main_train():
     if not nodeConfig:
         print('Node is not configured for training. Stopping...')
@@ -74,7 +82,8 @@ def main_train():
         prepareTrainerInput(imagesDir)
 
     trainer = IterativeTrainer(trainingDataset, validationDataset, testingGenerator, trainingConfig, inferenceConfig,
-                               initialWeights=initialWeights, modelDir=modelDir, visualize=nodeConfig.visualize)
+                               initialWeights=initialWeights, modelDir=modelDir, visualize=nodeConfig.visualize,
+                               classBGR=classBGR)
 
     startWithVisualization = parser.parse_args().start == 'vis'
     trainer.trainingLoop(startWithVisualization)
@@ -91,7 +100,7 @@ def saveOrShowDetections(save, saveStep, show, showInReverseOrder):
     from samples.iterative_training.IterativeTrainer import IterativeTrainer
     inferenceConfig = RoughAnnotatedPinsInferenceConfig()
     modelDir = os.path.join(nodeConfig.workingDir, 'logs')
-    trainer = IterativeTrainer(None, None, None, None, inferenceConfig, None, modelDir, False)
+    trainer = IterativeTrainer(None, None, None, None, inferenceConfig, None, modelDir, False, classBGR=None)
 
     # saveDir = '/home/trevol/HDD_DATA/TMP/frames/detect_all'
     saveDir = os.path.join(nodeConfig.workingDir, 'detect_all')
@@ -109,7 +118,7 @@ def saveOrShowDetections(save, saveStep, show, showInReverseOrder):
 def saveVisualizedDetections():
     from samples.iterative_training.IterativeTrainer import IterativeTrainer
     inferenceConfig = RoughAnnotatedPinsInferenceConfig()
-    trainer = IterativeTrainer(None, None, None, None, inferenceConfig, None, modelDir=None, visualize=False)
+    trainer = IterativeTrainer(None, None, None, None, inferenceConfig, None, modelDir=None, visualize=False, classBGR=None)
 
     # saveDir = '/home/trevol/HDD_DATA/TMP/frames/detect_all'
     saveDir = os.path.join(nodeConfig.workingDir, 'detect_all')

@@ -7,6 +7,8 @@ from samples.iterative_training.cvat.CvatAnnotation import CvatAnnotation
 from samples.iterative_training.tracking_arms_forceps.TrackingArmsForcepsConfig import TrackingArmsForcepsConfig, \
     TrackingArmsForcepsInferenceConfig
 from samples.iterative_training.tracking_arms_forceps.node_config import nodeConfig
+import imgaug as ia
+import imgaug.augmenters as iaa
 
 
 def imagesGenerator(reverse, step, paths, ext):
@@ -69,9 +71,14 @@ def main_train():
 
     trainingDataset, validationDataset, testingGenerator, trainingConfig, inferenceConfig = \
         prepareTrainerInput(imagesDir)
-
+    seq = iaa.Sequential([
+        iaa.Crop(px=(0, 16)),  # crop images from each side by 0 to 16px (randomly chosen)
+        iaa.Fliplr(0.5),  # horizontally flip 50% of the images
+        iaa.GaussianBlur(sigma=(0, 3.0))  # blur images with a sigma of 0 to 3.0
+    ])
     trainer = IterativeTrainer(trainingDataset, validationDataset, testingGenerator, trainingConfig, inferenceConfig,
-                               initialWeights=initialWeights, modelDir=modelDir, visualize=nodeConfig.visualize)
+                               initialWeights=initialWeights, modelDir=modelDir, visualize=nodeConfig.visualize,
+                               classBGR=None, augmentation=seq)
 
     startWithVisualization = parser.parse_args().start == 'vis'
     trainer.trainingLoop(startWithVisualization)
@@ -84,7 +91,9 @@ def main_explore_dataset():
     Utils.exploreDatasets(trainingDataset, validationDataset)
 
 
-# main_explore_dataset()
-main_train()
+if __name__ == '__main__':
+    ia.seed(1)
+    # main_explore_dataset()
+    main_train()
 
 # export PYTHONPATH=$PYTHONPATH:../../../..
