@@ -13,7 +13,7 @@ nodesConfigs = {
     "trevol-gpu-server": NodeConfig(
         framesDir="/trevol_gpu_nb_share/frames_6",
         workingDir="/trevol_gpu_nb_share/mask-rcnn/tracking_arms_forceps",
-        IMAGES_PER_GPU=4,
+        IMAGES_PER_GPU=2,
         visualize=False
     ),
 }
