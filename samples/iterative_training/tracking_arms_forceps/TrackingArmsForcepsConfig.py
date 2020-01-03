@@ -17,7 +17,7 @@ class TrackingArmsForcepsConfig(Config):
 
     # Number of classes (including background)
     NUM_CLASSES = 1 + 4  # background + arm + forceps + forceps+solder + pin-array
-    STEPS_PER_EPOCH = 100
+    STEPS_PER_EPOCH = 2000
 
     # BACKBONE = "resnet101"
     BACKBONE = "resnet50"
