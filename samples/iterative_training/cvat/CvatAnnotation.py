@@ -3,8 +3,9 @@ from xml.etree import ElementTree as ET
 
 class CvatAnnotation:
     class ImageAnnotation:
-        def __init__(self, name, polygons=None, boxes=None):
+        def __init__(self, name, id, polygons=None, boxes=None):
             self.name = name
+            self.id = id
             self.polygons = [] if polygons is None else polygons
             self.boxes = [] if boxes is None else boxes
 
@@ -49,7 +50,9 @@ class CvatAnnotation:
                 ybr = _floatStrToInt(boxEl.get('ybr'))
                 boxes.append(cls.BoxAnnotation(label, xtl, ytl, xbr, ybr))
 
-            imageAnnotation = cls.ImageAnnotation(imageEl.get('name'), polygons, boxes)
+            name = imageEl.get('name')
+            id = int(imageEl.get('id'))
+            imageAnnotation = cls.ImageAnnotation(name, id, polygons, boxes)
             imageAnnotations.append(imageAnnotation)
 
         return labels, imageAnnotations

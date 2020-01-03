@@ -66,7 +66,7 @@ def main_train():
     initialWeights = os.path.join(nodeConfig.workingDir, 'mask_rcnn_coco.h5')
     # initialWeights = None
     modelDir = os.path.join(nodeConfig.workingDir, 'logs')
-    imagesDir = os.path.join(nodeConfig.workingDir, 'frames_6')
+    imagesDir = nodeConfig.framesDir
     RoughAnnotatedPinsConfig.IMAGES_PER_GPU = nodeConfig.IMAGES_PER_GPU
     RoughAnnotatedPinsConfig.LEARNING_RATE = 0.0001
 

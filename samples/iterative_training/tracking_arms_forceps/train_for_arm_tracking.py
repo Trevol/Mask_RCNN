@@ -1,6 +1,7 @@
 import os
 
 from samples.iterative_training.Utils import Utils
+from samples.iterative_training.arguments import parser
 from samples.iterative_training.cvat.CVATDataset import CVATDataset
 from samples.iterative_training.cvat.CvatAnnotation import CvatAnnotation
 from samples.iterative_training.tracking_arms_forceps.TrackingArmsForcepsConfig import TrackingArmsForcepsConfig, \
@@ -53,12 +54,37 @@ def prepareTrainerInput(imagesDir):
                                                                'jpg'), trainingConfig, inferenceConfig
 
 
+def main_train():
+    if not nodeConfig:
+        print('Node is not configured for training. Stopping...')
+        return
+    from samples.iterative_training.IterativeTrainer import IterativeTrainer
+
+    initialWeights = os.path.join(nodeConfig.workingDir, 'mask_rcnn_coco.h5')
+    # initialWeights = None
+    modelDir = os.path.join(nodeConfig.workingDir, 'logs')
+    imagesDir = nodeConfig.framesDir
+    TrackingArmsForcepsConfig.IMAGES_PER_GPU = nodeConfig.IMAGES_PER_GPU
+    # TrackingArmsForcepsConfig.LEARNING_RATE = 0.0001
+
+    trainingDataset, validationDataset, testingGenerator, trainingConfig, inferenceConfig = \
+        prepareTrainerInput(imagesDir)
+
+    trainer = IterativeTrainer(trainingDataset, validationDataset, testingGenerator, trainingConfig, inferenceConfig,
+                               initialWeights=initialWeights, modelDir=modelDir, visualize=nodeConfig.visualize)
+
+    startWithVisualization = parser.parse_args().start == 'vis'
+    trainer.trainingLoop(startWithVisualization)
+    # trainer.visualizePredictability()
+
+
 def main_explore_dataset():
     imagesDir = os.path.join(nodeConfig.workingDir, 'frames_6')
     trainingDataset, validationDataset, testingGenerator, _, _ = prepareTrainerInput(imagesDir)
     Utils.exploreDatasets(trainingDataset, validationDataset)
 
 
-main_explore_dataset()
+# main_explore_dataset()
+main_train()
 
 # export PYTHONPATH=$PYTHONPATH:../../../..

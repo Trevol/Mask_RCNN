@@ -40,8 +40,8 @@ class CVATDataset(utils.Dataset):
 
         mask = np.dstack(polyMasks + boxMasks).astype(np.bool)
         # Map class names to class IDs.
-        class_ids = np.array([labels.index(p.label) + 1 for p in polygons])
-        return mask, class_ids.astype(np.int32)
+        class_ids = np.int32([labels.index(p.label) + 1 for p in polygons + boxes])
+        return mask, class_ids
 
     def __init__(self, name, labels, imagesDirs, imageAnnotations):
         super(CVATDataset, self).__init__()

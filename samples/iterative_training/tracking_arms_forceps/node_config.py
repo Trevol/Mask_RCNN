@@ -4,16 +4,18 @@
 from collections import namedtuple
 import platform
 
-NodeConfig = namedtuple("NodeConfig", ["workingDir", "IMAGES_PER_GPU", "visualize"])
+NodeConfig = namedtuple("NodeConfig", ["framesDir", "workingDir", "IMAGES_PER_GPU", "visualize"])
 
 nodesConfigs = {
     "trevol-gpu-nb": NodeConfig(
-        workingDir="/HDD_DATA/nfs_share/mask-rcnn/pins/rough_dataset",
+        framesDir="/HDD_DATA/nfs_share/frames_6",
+        workingDir="/HDD_DATA/nfs_share/mask-rcnn/tracking_arms_forceps",
         IMAGES_PER_GPU=1,
         visualize=True
     ),
     "trevol-gpu-server": NodeConfig(
-        workingDir="/trevol_gpu_nb_share/mask-rcnn/pins/rough_dataset",
+        framesDir="/trevol_gpu_nb_share/frames_6",
+        workingDir="/trevol_gpu_nb_share/mask-rcnn/tracking_arms_forceps",
         IMAGES_PER_GPU=2,
         visualize=False
     ),
