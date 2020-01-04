@@ -1,4 +1,8 @@
 import os
+import warnings
+
+import tensorflow as tf
+tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 from samples.iterative_training.Utils import Utils
 from samples.iterative_training.arguments import parser
@@ -94,8 +98,11 @@ def main_explore_dataset():
 
 
 if __name__ == '__main__':
-    ia.seed(1)
-    # main_explore_dataset()
-    main_train()
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        ia.seed(1)
+        # main_explore_dataset()
+        main_train()
 
 # export PYTHONPATH=$PYTHONPATH:../../../..
