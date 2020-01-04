@@ -31,7 +31,7 @@ def main():
     pickleDir = os.path.join(nodeConfig.workingDir, 'detect_all/pickles')
     outputImagesDir = os.path.join(nodeConfig.workingDir, 'detect_all/visualization')
 
-    imagesGen = imagesGenerator(False, step=500,
+    imagesGen = imagesGenerator(False, step=1,
                                 paths=nodeConfig.framesDir,
                                 ext='jpg')
 
