@@ -63,19 +63,22 @@ class IterativeTrainer():
                 self._inferenceModel.load_weights(lastWeights, by_name=True)
         return self._inferenceModel, lastWeights
 
-    def train(self):
+    def train(self, lr):
         trainableModel = self.getTrainableModel(loadWeights=True)
         trainingDataset = self.getTrainingDataset()
         validationDataset = self.getValidationDataset()
-        trainableModel.train(trainingDataset, validationDataset, self.trainingConfig.LEARNING_RATE,
+
+        lr = lr or self.trainingConfig.LEARNING_RATE
+        print('Training stage 1: HEADS.')
+        trainableModel.train(trainingDataset, validationDataset, lr,
                              epochs=trainableModel.epoch + 1, layers='heads', augmentation=self.augmentation)
-        # Training - Stage 2
-        # Finetune layers from ResNet stage 4 and up
-        trainableModel.train(trainingDataset, validationDataset, self.trainingConfig.LEARNING_RATE,
+
+        print('Training stage 2: Finetune layers from ResNet stage 4 and up.')
+        trainableModel.train(trainingDataset, validationDataset, lr,
                              epochs=trainableModel.epoch + 1, layers='4+',
                              augmentation=self.augmentation)
-
-        trainableModel.train(trainingDataset, validationDataset, self.trainingConfig.LEARNING_RATE / 10,
+        print('Training stage 3: Finetune all layers')
+        trainableModel.train(trainingDataset, validationDataset, lr / 10,
                              epochs=trainableModel.epoch + 1, layers='all', augmentation=self.augmentation)
 
     def visualizePredictability(self, imageGenerator=None):
@@ -122,13 +125,13 @@ class IterativeTrainer():
         if verbose:
             print('Saved.', imageFile, masksFile)
 
-    def trainingLoop(self, startWithVisualization):
+    def trainingLoop(self, startWithVisualization, lr=None):
         if startWithVisualization:
             interactionResult = self.visualizePredictability()
             if interactionResult == 'esc':
                 return
         while True:
-            self.train()
+            self.train(lr)
             interactionResult = self.visualizePredictability()
             if interactionResult == 'esc':
                 break

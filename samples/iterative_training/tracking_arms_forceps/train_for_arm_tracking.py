@@ -80,8 +80,10 @@ def main_train():
                                initialWeights=initialWeights, modelDir=modelDir, visualize=nodeConfig.visualize,
                                classBGR=None, augmentation=seq)
 
-    startWithVisualization = parser.parse_args().start == 'vis'
-    trainer.trainingLoop(startWithVisualization)
+    args = parser.parse_args()
+    startWithVisualization = args.start == 'vis'
+    lr = args.lr
+    trainer.trainingLoop(startWithVisualization, lr)
     # trainer.visualizePredictability()
 
 
