@@ -1,4 +1,6 @@
 import os
+import warnings
+
 import cv2
 import numpy as np
 
@@ -70,8 +72,11 @@ class IterativeTrainer():
 
         lr = lr or self.trainingConfig.LEARNING_RATE
         print('Training stage 1: HEADS.')
-        trainableModel.train(trainingDataset, validationDataset, lr,
-                             epochs=trainableModel.epoch + 1, layers='heads', augmentation=self.augmentation)
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            trainableModel.train(trainingDataset, validationDataset, lr,
+                                 epochs=trainableModel.epoch + 1, layers='heads', augmentation=self.augmentation)
 
         print('Training stage 2: Finetune layers from ResNet stage 4 and up.')
         trainableModel.train(trainingDataset, validationDataset, lr,
