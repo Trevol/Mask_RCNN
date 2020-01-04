@@ -1,4 +1,3 @@
-# TODO: catch warnings
 # TODO: visualize predictions
 # TODO: training session - set of trainings - (heads, resnet stage 4+, all)
 # TODO: save weights after all trainings (heads, resnet stage 4+, all)
@@ -7,4 +6,5 @@
 
 # TODO: inference on CPU???
 # TODO: ReduceLRonPlatue
-#+++++ provide LR (learning rate) command line param
+# +++++  catch warnings
+# +++++ provide LR (learning rate) command line param
