@@ -36,8 +36,8 @@ def prepareTrainerInput(imagesDir):
 
     dataDir = './data'
 
-    trainXmlAnnotations = ['11_arm_forceps_solder_pin-array.xml']
-    valXmlAnnotations = ['11_arm_forceps_solder_pin-array.xml']
+    trainXmlAnnotations = ['12_arm_forceps_solder_pin-array.xml']
+    valXmlAnnotations = ['12_arm_forceps_solder_pin-array.xml']
 
     pjn = os.path.join
     trainLabelsAndImageAnnotations = [CvatAnnotation.parse(pjn(dataDir, x)) for x in trainXmlAnnotations]
@@ -92,7 +92,7 @@ def main_train():
 
 
 def main_explore_dataset():
-    imagesDir = os.path.join(nodeConfig.workingDir, 'frames_6')
+    imagesDir = nodeConfig.framesDir
     trainingDataset, validationDataset, testingGenerator, _, _ = prepareTrainerInput(imagesDir)
     Utils.exploreDatasets(trainingDataset, validationDataset)
 
@@ -102,7 +102,7 @@ if __name__ == '__main__':
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         ia.seed(1)
-        # main_explore_dataset()
-        main_train()
+        main_explore_dataset()
+        # main_train()
 
 # export PYTHONPATH=$PYTHONPATH:../../../..
