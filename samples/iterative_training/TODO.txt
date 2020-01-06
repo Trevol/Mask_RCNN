@@ -1,3 +1,4 @@
+# TODO: rsync nodes
 # TODO: visualize predictions
 # TODO: training session - set of trainings - (heads, resnet stage 4+, all)
 # TODO: save weights after all trainings (heads, resnet stage 4+, all)
