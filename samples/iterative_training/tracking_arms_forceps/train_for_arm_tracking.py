@@ -36,8 +36,8 @@ def prepareTrainerInput(imagesDir):
 
     dataDir = './data'
 
-    trainXmlAnnotations = ['12_arm_forceps_solder_pin-array.xml']
-    valXmlAnnotations = ['12_arm_forceps_solder_pin-array.xml']
+    trainXmlAnnotations = ['13_arm_forceps_solder_pin-array.xml']
+    valXmlAnnotations = ['13_arm_forceps_solder_pin-array.xml']
 
     pjn = os.path.join
     trainLabelsAndImageAnnotations = [CvatAnnotation.parse(pjn(dataDir, x)) for x in trainXmlAnnotations]
