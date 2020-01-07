@@ -154,33 +154,45 @@ class IterativeTrainer():
             if i > 0 and i % 50 == 0:
                 print(f'{i} images processed')
 
-    def saveDetectionsV2(self, imagesGenerator, pickleDir, imagesDir):
+    def saveDetectionsV2(self, imagesGenerator, pickleDir, imagesDir, withBoxes: bool, onlyMasks: bool):
+        assert pickleDir or imagesDir
+        assert imagesDir and (withBoxes or onlyMasks)
+
         model, weights = self.getInferenceModel(loadLastWeights=True)
         print('Using weights ', weights)
 
-        os.makedirs(pickleDir, exist_ok=True)
+        if pickleDir:
+            os.makedirs(pickleDir, exist_ok=True)
+
+        withBoxesDir, onlyMasksDir = None, None
         if imagesDir:
-            withBoxesDir = os.path.join(imagesDir, 'withBoxes')
-            onlyMasksDir = os.path.join(imagesDir, 'onlyMasks')
-            os.makedirs(withBoxesDir, exist_ok=True)
-            os.makedirs(onlyMasksDir, exist_ok=True)
+            if withBoxes:
+                withBoxesDir = os.path.join(imagesDir, 'withBoxes')
+                os.makedirs(withBoxesDir, exist_ok=True)
+            if onlyMasks:
+                onlyMasksDir = os.path.join(imagesDir, 'onlyMasks')
+                os.makedirs(onlyMasksDir, exist_ok=True)
 
         for i, (imageFile, image) in enumerate(imagesGenerator):
             r = model.detect_minimasks([image])[0]
-            nameWithoutExt = os.path.splitext(imageFile)[0]
-            outFile = os.path.join(pickleDir, nameWithoutExt + '.pickle')
-            Utils.savePickle(r, outFile)
+
+            if pickleDir:
+                nameWithoutExt = os.path.splitext(imageFile)[0]
+                pickleFile = os.path.join(pickleDir, nameWithoutExt + '.pickle')
+                Utils.savePickle(r, pickleFile)
 
             if imagesDir:
                 boxes, masks, classIds, scores = r['rois'], r['masks'], r['class_ids'], r['scores']
-                imageWithBoxes = Utils.display_instances(image.copy(), boxes, masks, classIds, scores,
-                                                         'classes', self.classBGR, True, True, True)
-                imageOnlyMasks = Utils.display_instances(image.copy(), boxes, masks, classIds, scores,
-                                                         'classes', self.classBGR, False, True, False)
-                skimage.io.imsave(os.path.join(withBoxesDir, imageFile), imageWithBoxes)
-                skimage.io.imsave(os.path.join(onlyMasksDir, imageFile), imageOnlyMasks)
+                if withBoxes:
+                    imageWithBoxes = Utils.display_instances(image.copy(), boxes, masks, classIds, scores,
+                                                             'classes', self.classBGR, True, True, True)
+                    skimage.io.imsave(os.path.join(withBoxesDir, imageFile), imageWithBoxes)
+                if onlyMasks:
+                    imageOnlyMasks = Utils.display_instances(image.copy(), boxes, masks, classIds, scores,
+                                                             'classes', self.classBGR, False, True, False)
+                    skimage.io.imsave(os.path.join(onlyMasksDir, imageFile), imageOnlyMasks)
 
-            if i > 0 and i % 50 == 0:
+            if i > 0 and i % 100 == 0:
                 print(f'{i} images processed')
 
     def showSavedDetections(self, saveDir, inReverseOrder, imagesDirs, imageExt, step, saveVisualizationToDir=None):

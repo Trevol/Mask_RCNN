@@ -1,21 +1,9 @@
 import os
+
+from samples.iterative_training.Utils import Utils
 from samples.iterative_training.tracking_arms_forceps.TrackingArmsForcepsConfig import \
     TrackingArmsForcepsInferenceConfig
 from samples.iterative_training.tracking_arms_forceps.node_config import nodeConfig
-
-
-# TODO: its duplicate - remove it by moving to utils
-def imagesGenerator(reverse, step, paths, ext):
-    assert isinstance(paths, (list, str))
-    if isinstance(paths, str):
-        paths = [paths]
-    assert len(paths)
-
-    import glob, skimage.io
-    for path in paths:
-        imagePaths = glob.glob(os.path.join(path, f'*.{ext}'), recursive=False)
-        for imagePath in sorted(imagePaths, reverse=reverse)[::step]:
-            yield os.path.basename(imagePath), skimage.io.imread(imagePath)
 
 
 def main():
@@ -31,11 +19,9 @@ def main():
     pickleDir = os.path.join(nodeConfig.workingDir, 'detect_all/pickles')
     outputImagesDir = os.path.join(nodeConfig.workingDir, 'detect_all/visualization')
 
-    imagesGen = imagesGenerator(False, step=1,
-                                paths=nodeConfig.framesDir,
-                                ext='jpg')
+    imagesGen = Utils.imagesGenerator(paths=nodeConfig.framesDir, ext='jpg', start=4173, stop=None, step=1)
 
-    trainer.saveDetectionsV2(imagesGen, pickleDir, outputImagesDir)
+    trainer.saveDetectionsV2(imagesGen, pickleDir=pickleDir, imagesDir=outputImagesDir, withBoxes=True, onlyMasks=True)
 
 
 if __name__ == '__main__':

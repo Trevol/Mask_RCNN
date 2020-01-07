@@ -9,19 +9,6 @@ from samples.iterative_training.pins.rough_dataset.RoughAnnotatedPinsConfig impo
 from samples.iterative_training.pins.rough_dataset.node_config import nodeConfig
 
 
-def imagesGenerator(reverse, step, paths, ext):
-    assert isinstance(paths, (list, str))
-    if isinstance(paths, str):
-        paths = [paths]
-    assert len(paths)
-
-    import glob, skimage.io
-    for path in paths:
-        imagePaths = glob.glob(os.path.join(path, f'*.{ext}'), recursive=False)
-        for imagePath in sorted(imagePaths, reverse=reverse)[::step]:
-            yield os.path.basename(imagePath), skimage.io.imread(imagePath)
-
-
 def prepareTrainerInput(imagesDir):
     labels = ['pin', 'pin_w_solder']
 
@@ -53,8 +40,8 @@ def prepareTrainerInput(imagesDir):
     trainingDataset = PinsDataset(labels, [imagesDir, dataDir], trainImageAnnotations)
     validationDataset = PinsDataset(labels, [imagesDir, dataDir], valImageAnnotations)
 
-    return trainingDataset, validationDataset, imagesGenerator(True, 10, [imagesDir],
-                                                               'jpg'), trainingConfig, inferenceConfig
+    imGen = Utils.imagesGenerator(paths=[imagesDir], ext='jpg', start=None, stop=None, step=-10)
+    return trainingDataset, validationDataset, imGen, trainingConfig, inferenceConfig
 
 
 classBGR = [
@@ -109,7 +96,7 @@ def saveOrShowDetections(save, saveStep, show, showInReverseOrder):
     imageExt = 'jpg'
 
     if save:
-        imagesGen = imagesGenerator(False, saveStep, imagesDirs, imageExt)
+        imagesGen = Utils.imagesGenerator(paths=imagesDirs, ext=imageExt, start=None, stop=None, step=saveStep)
         trainer.saveDetections(imagesGen, saveDir)
     if show:
         trainer.showSavedDetections(saveDir, showInReverseOrder, imagesDirs, imageExt, 1)
@@ -118,7 +105,8 @@ def saveOrShowDetections(save, saveStep, show, showInReverseOrder):
 def saveVisualizedDetections():
     from samples.iterative_training.IterativeTrainer import IterativeTrainer
     inferenceConfig = RoughAnnotatedPinsInferenceConfig()
-    trainer = IterativeTrainer(None, None, None, None, inferenceConfig, None, modelDir=None, visualize=False, classBGR=None)
+    trainer = IterativeTrainer(None, None, None, None, inferenceConfig, None, modelDir=None, visualize=False,
+                               classBGR=None)
 
     # saveDir = '/home/trevol/HDD_DATA/TMP/frames/detect_all'
     saveDir = os.path.join(nodeConfig.workingDir, 'detect_all')

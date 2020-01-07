@@ -2,6 +2,7 @@ import os
 import warnings
 
 import tensorflow as tf
+
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 from samples.iterative_training.Utils import Utils
@@ -56,8 +57,8 @@ def prepareTrainerInput(imagesDir):
     trainingDataset = CVATDataset('TrackingArmsForceps', labels, [imagesDir, dataDir], trainImageAnnotations)
     validationDataset = CVATDataset('TrackingArmsForceps', labels, [imagesDir, dataDir], valImageAnnotations)
 
-    return trainingDataset, validationDataset, imagesGenerator(True, 10, [imagesDir],
-                                                               'jpg'), trainingConfig, inferenceConfig
+    imGen = Utils.imagesGenerator(paths=[imagesDir], ext='jpg', start=None, stop=None, step=-10)
+    return trainingDataset, validationDataset, imGen, trainingConfig, inferenceConfig
 
 
 def main_train():

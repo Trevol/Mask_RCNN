@@ -214,6 +214,18 @@ class Utils:
         with open(picklePath, 'rb') as f:
             return pickle.load(f)
 
+    @staticmethod
+    def imagesGenerator(paths, ext, start, stop, step):
+        assert isinstance(paths, (list, str))
+        if isinstance(paths, str):
+            paths = [paths]
+        assert len(paths)
+        import glob, skimage.io
+        for path in paths:
+            imagePaths = glob.glob(os.path.join(path, f'*.{ext}'), recursive=False)
+            for imagePath in sorted(imagePaths)[start:stop:step]:
+                yield os.path.basename(imagePath), skimage.io.imread(imagePath)
+
 
 class contexts:
     def __init__(self, *contextObjects):

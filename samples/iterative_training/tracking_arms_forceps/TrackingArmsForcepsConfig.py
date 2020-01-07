@@ -17,7 +17,7 @@ class TrackingArmsForcepsConfig(Config):
 
     # Number of classes (including background)
     NUM_CLASSES = 1 + 4  # background + arm + forceps + forceps+solder + pin-array
-    STEPS_PER_EPOCH = 2000
+    STEPS_PER_EPOCH = 1000
 
     # BACKBONE = "resnet101"
     BACKBONE = "resnet50"
@@ -29,3 +29,6 @@ class TrackingArmsForcepsConfig(Config):
 
 class TrackingArmsForcepsInferenceConfig(TrackingArmsForcepsConfig):
     IMAGES_PER_GPU = 1
+
+    def __init__(self, imagesPerGpu=1):
+        self.IMAGES_PER_GPU = imagesPerGpu or self.IMAGES_PER_GPU

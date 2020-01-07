@@ -1,7 +1,12 @@
+# move data to ssd on server
+# visualize with imagesPerGPU > 1
+# TODO: training session - set of trainings - (heads, resnet stage 4+, all)
+# TODO: save weights after session (heads, resnet stage 4+, all)
+# save visualizations after 5 sessions
+# save visualization for range of frames (with forceps)
+
 # TODO: rsync nodes
 # TODO: visualize predictions
-# TODO: training session - set of trainings - (heads, resnet stage 4+, all)
-# TODO: save weights after all trainings (heads, resnet stage 4+, all)
 # TODO: save to local workdir and rsync between gpu-nb and gpu-server
 # TODO: stop criterion
 

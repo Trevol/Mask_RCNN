@@ -11,10 +11,8 @@ nodesConfigs = {
         visualize=True
     ),
     "trevol-gpu-server": NodeConfig(
-        # framesDir="/trevol_gpu_nb_share/frames_6",
-        framesDir="/mnt/hdd/pin_n_solder/frames_6",
-        # workingDir="/trevol_gpu_nb_share/mask-rcnn/tracking_arms_forceps",
-        workingDir="/mnt/hdd/pin_n_solder/mask-rcnn/tracking_arms_forceps",
+        framesDir="/nvme_data/pin_n_solder/frames_6",
+        workingDir="/nvme_data/pin_n_solder/mask-rcnn/tracking_arms_forceps",
         IMAGES_PER_GPU=2,
         visualize=False
     ),
