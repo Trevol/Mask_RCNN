@@ -32,3 +32,4 @@ class TrackingArmsForcepsInferenceConfig(TrackingArmsForcepsConfig):
 
     def __init__(self, imagesPerGpu=1):
         self.IMAGES_PER_GPU = imagesPerGpu or self.IMAGES_PER_GPU
+        super(TrackingArmsForcepsInferenceConfig, self).__init__()
