@@ -16,12 +16,12 @@ def main():
     trainer = IterativeTrainer(None, None, None, None, inferenceConfig, None, modelDir, False, classBGR=classBGR,
                                augmentation=None)
 
-    pickleDir = os.path.join(nodeConfig.workingDir, 'detect_all/pickles')
+    # pickleDir = os.path.join(nodeConfig.workingDir, 'detect_all/pickles')
     outputImagesDir = os.path.join(nodeConfig.workingDir, 'detect_all/visualization')
 
     imagesGen = Utils.imagesGenerator(paths=nodeConfig.framesDir, ext='jpg', start=4173, stop=None, step=1)
 
-    trainer.saveDetectionsV2(imagesGen, pickleDir=pickleDir, imagesDir=outputImagesDir, withBoxes=True, onlyMasks=True)
+    trainer.saveDetectionsV2(imagesGen, pickleDir=None, imagesDir=outputImagesDir, withBoxes=True, onlyMasks=False)
 
 
 if __name__ == '__main__':
