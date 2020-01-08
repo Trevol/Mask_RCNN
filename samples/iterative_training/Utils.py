@@ -226,7 +226,7 @@ class Utils:
         for path in paths:
             imagePaths = glob.glob(os.path.join(path, f'*.{ext}'), recursive=False)
             for imagePath in sorted(imagePaths)[start:stop:step]:
-                yield os.path.basename(imagePath), skimage.io.imread(imagePath)
+                yield os.path.basename(imagePath), None # skimage.io.imread(imagePath)
 
     @staticmethod
     def batchFlow(iterable, batchSize):
