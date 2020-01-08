@@ -60,7 +60,7 @@ def prepareTrainerInput(imagesDir):
     trainingDataset = CVATDataset('TrackingArmsForceps', labels, [imagesDir, dataDir], trainImageAnnotations)
     validationDataset = CVATDataset('TrackingArmsForceps', labels, [imagesDir, dataDir], valImageAnnotations)
 
-    imGen = Utils.imagesGenerator(paths=[imagesDir], ext='jpg', start=None, stop=None, step=-10)
+    imGen = Utils.imageFlow(paths=[imagesDir], ext='jpg', start=None, stop=None, step=-10)
     return trainingDataset, validationDataset, imGen, trainingConfig, inferenceConfig
 
 

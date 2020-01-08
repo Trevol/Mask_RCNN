@@ -129,7 +129,8 @@ class MaskRCNNEx(MaskRCNN):
         masks: [H, W, N] instance binary masks
         """
         assert self.mode == "inference", "Create model in inference mode."
-        assert len(images) == self.config.BATCH_SIZE, "len(images) must be equal to BATCH_SIZE"
+        assert len(images) > 0
+        # assert len(images) == self.config.BATCH_SIZE, "len(images) must be equal to BATCH_SIZE"
 
         # Mold inputs to format expected by the neural network
         molded_images, image_metas, windows = self.mold_inputs(images)
@@ -145,7 +146,8 @@ class MaskRCNNEx(MaskRCNN):
         anchors = self.get_anchors(image_shape)
         # Duplicate across the batch dimension because Keras requires it
         # TODO: can this be optimized to avoid duplicating the anchors?
-        anchors = np.broadcast_to(anchors, (self.config.BATCH_SIZE,) + anchors.shape)
+        # anchors = np.broadcast_to(anchors, (self.config.BATCH_SIZE,) + anchors.shape)
+        anchors = np.broadcast_to(anchors, (len(images),) + anchors.shape)
 
         # Run object detection
         detections, _, _, mrcnn_mask, _, _, _ = \

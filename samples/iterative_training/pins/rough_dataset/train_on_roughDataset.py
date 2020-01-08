@@ -40,7 +40,7 @@ def prepareTrainerInput(imagesDir):
     trainingDataset = PinsDataset(labels, [imagesDir, dataDir], trainImageAnnotations)
     validationDataset = PinsDataset(labels, [imagesDir, dataDir], valImageAnnotations)
 
-    imGen = Utils.imagesGenerator(paths=[imagesDir], ext='jpg', start=None, stop=None, step=-10)
+    imGen = Utils.imageFlow(paths=[imagesDir], ext='jpg', start=None, stop=None, step=-10)
     return trainingDataset, validationDataset, imGen, trainingConfig, inferenceConfig
 
 
@@ -96,7 +96,7 @@ def saveOrShowDetections(save, saveStep, show, showInReverseOrder):
     imageExt = 'jpg'
 
     if save:
-        imagesGen = Utils.imagesGenerator(paths=imagesDirs, ext=imageExt, start=None, stop=None, step=saveStep)
+        imagesGen = Utils.imageFlow(paths=imagesDirs, ext=imageExt, start=None, stop=None, step=saveStep)
         trainer.saveDetections(imagesGen, saveDir)
     if show:
         trainer.showSavedDetections(saveDir, showInReverseOrder, imagesDirs, imageExt, 1)

@@ -1,3 +1,4 @@
+import argparse
 import os
 
 from samples.iterative_training.Utils import Utils
@@ -6,10 +7,19 @@ from samples.iterative_training.tracking_arms_forceps.TrackingArmsForcepsConfig 
 from samples.iterative_training.tracking_arms_forceps.node_config import nodeConfig
 
 
+class Args:
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--images_per_gpu', required=False, default=1, type=int)
+
+    def __new__(cls, *args, **kwargs):
+        return cls.parser.parse_args()
+
+
 def main():
     from samples.iterative_training.IterativeTrainer import IterativeTrainer
 
-    inferenceConfig = TrackingArmsForcepsInferenceConfig()
+    inferenceConfig = TrackingArmsForcepsInferenceConfig(Args().images_per_gpu)
+
     modelDir = os.path.join(nodeConfig.workingDir, 'logs')
     classBGR = [None, (255, 0, 0), (127, 255, 0), (0, 255, 255),
                 (127, 0, 255)]  # background + arm + forceps + forceps+solder + pin-array
@@ -19,9 +29,10 @@ def main():
     # pickleDir = os.path.join(nodeConfig.workingDir, 'detect_all/pickles')
     outputImagesDir = os.path.join(nodeConfig.workingDir, 'detect_all/visualization')
 
-    imagesGen = Utils.imagesGenerator(paths=nodeConfig.framesDir, ext='jpg', start=4173, stop=None, step=1)
+    imagesGen = Utils.imageFlow(paths=nodeConfig.framesDir, ext='jpg', start=4173, stop=None, step=1)
 
-    trainer.saveDetectionsV2(imagesGen, pickleDir=None, imagesDir=outputImagesDir, withBoxes=True, onlyMasks=False)
+    trainer.saveDetectionsV2(imagesGen, inferenceConfig.BATCH_SIZE, pickleDir=None, imagesDir=outputImagesDir,
+                             withBoxes=True, onlyMasks=False)
 
 
 if __name__ == '__main__':

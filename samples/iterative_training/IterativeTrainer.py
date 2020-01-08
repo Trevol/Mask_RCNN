@@ -154,7 +154,7 @@ class IterativeTrainer():
             if i > 0 and i % 50 == 0:
                 print(f'{i} images processed')
 
-    def saveDetectionsV2(self, imagesGenerator, pickleDir, imagesDir, withBoxes: bool, onlyMasks: bool):
+    def saveDetectionsV2(self, imagesGenerator, batchSize, pickleDir, imagesDir, withBoxes: bool, onlyMasks: bool):
         assert pickleDir or imagesDir
         assert imagesDir and (withBoxes or onlyMasks)
 
@@ -173,9 +173,7 @@ class IterativeTrainer():
                 onlyMasksDir = os.path.join(imagesDir, 'onlyMasks')
                 os.makedirs(onlyMasksDir, exist_ok=True)
 
-        for i, (imageFile, image) in enumerate(imagesGenerator):
-            r = model.detect_minimasks([image])[0]
-
+        def saveStuff(r, imageFile, image):
             if pickleDir:
                 nameWithoutExt = os.path.splitext(imageFile)[0]
                 pickleFile = os.path.join(pickleDir, nameWithoutExt + '.pickle')
@@ -192,8 +190,13 @@ class IterativeTrainer():
                                                              'classes', self.classBGR, False, True, False)
                     skimage.io.imsave(os.path.join(onlyMasksDir, imageFile), imageOnlyMasks)
 
+        for i, batch in enumerate(Utils.batchFlow(imagesGenerator, batchSize)):
+            imBatch = list(map(lambda b: b[1], batch))
+            resultsBatch = model.detect_minimasks(imBatch)
+            for r, (imageFile, image) in zip(resultsBatch, batch):
+                saveStuff(r, imageFile, image)
             if i > 0 and i % 100 == 0:
-                print(f'{i} images processed')
+                print(f'{i} batches processed')
 
     def showSavedDetections(self, saveDir, inReverseOrder, imagesDirs, imageExt, step, saveVisualizationToDir=None):
         def genDetectionsAndImage():

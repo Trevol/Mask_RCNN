@@ -217,7 +217,7 @@ class Utils:
             return pickle.load(f)
 
     @staticmethod
-    def imagesGenerator(paths, ext, start, stop, step):
+    def imageFlow(paths, ext, start, stop, step):
         assert isinstance(paths, (list, str))
         if isinstance(paths, str):
             paths = [paths]
@@ -227,6 +227,24 @@ class Utils:
             imagePaths = glob.glob(os.path.join(path, f'*.{ext}'), recursive=False)
             for imagePath in sorted(imagePaths)[start:stop:step]:
                 yield os.path.basename(imagePath), skimage.io.imread(imagePath)
+
+    @staticmethod
+    def batchFlow(iterable, batchSize):
+        assert batchSize > 0
+        END_OF_ITER = object()
+        batch = []
+        while True:
+            item = next(iterable, END_OF_ITER)
+            if item == END_OF_ITER:
+                # end of iteration
+                if len(batch) > 0:
+                    yield batch
+                break
+            if len(batch) < batchSize:
+                batch.append(item)
+            else:
+                yield batch
+                batch = [item]
 
 
 class contexts:
