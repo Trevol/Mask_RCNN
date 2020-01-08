@@ -26,7 +26,10 @@ class CVATDataset(utils.Dataset):
     def makeMask(size, polygons, boxes, labels):
         polygons = [p for p in polygons if p.label in labels]
         boxes = [b for b in boxes if b.label in labels]
-        assert len(polygons) > 0 or len(boxes) > 0
+
+        # assert len(polygons) > 0 or len(boxes) > 0
+        if len(polygons) == 0 and len(boxes) == 0:
+            return np.empty([*size, 0], np.bool), np.int32([])
 
         polyMasks = [np.zeros(size, np.uint8) for _ in range(len(polygons))]
         for i, p in enumerate(polygons):

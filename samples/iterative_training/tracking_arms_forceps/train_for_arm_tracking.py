@@ -30,7 +30,8 @@ def imagesGenerator(reverse, step, paths, ext):
 
 
 def prepareTrainerInput(imagesDir):
-    labels = ['arm', 'forceps', 'forceps+solder', 'pin-array']
+    # labels = ['arm', 'forceps', 'forceps+solder', 'pin-array']
+    labels = ['forceps', 'forceps+solder']
 
     trainingConfig = TrackingArmsForcepsConfig()
     inferenceConfig = TrackingArmsForcepsInferenceConfig()
@@ -46,12 +47,14 @@ def prepareTrainerInput(imagesDir):
 
     trainImageAnnotations = []
     for annotLabels, imageAnnotations in trainLabelsAndImageAnnotations:
-        assert annotLabels == labels
+        # assert annotLabels == labels
+        assert set(labels).issubset(set(annotLabels))
         trainImageAnnotations.extend(imageAnnotations)
 
     valImageAnnotations = []
     for annotLabels, imageAnnotations in valLabelsAndImageAnnotations:
-        assert annotLabels == labels
+        # assert annotLabels == labels
+        assert set(labels).issubset(set(annotLabels))
         valImageAnnotations.extend(imageAnnotations)
 
     trainingDataset = CVATDataset('TrackingArmsForceps', labels, [imagesDir, dataDir], trainImageAnnotations)
@@ -67,8 +70,11 @@ def main_train():
         return
     from samples.iterative_training.IterativeTrainer import IterativeTrainer
 
-    initialWeights = os.path.join(nodeConfig.workingDir, 'mask_rcnn_coco.h5')
+    initialWeights = nodeConfig.initialWeights
     # initialWeights = None
+
+    os.makedirs(nodeConfig.workingDir, exist_ok=True)
+
     modelDir = os.path.join(nodeConfig.workingDir, 'logs')
     imagesDir = nodeConfig.framesDir
     TrackingArmsForcepsConfig.IMAGES_PER_GPU = nodeConfig.IMAGES_PER_GPU

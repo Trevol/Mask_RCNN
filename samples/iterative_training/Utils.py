@@ -137,6 +137,8 @@ class Utils:
 
     @staticmethod
     def applyFullsizedMasks(image, masks, colorMap, alpha=.5):
+        if masks.shape[-1] == 0:  # empty masks
+            return image
         if colorMap is None:
             colorMap = Utils.createColorMap()
         zeroInstanceMask = masks[..., 0]
