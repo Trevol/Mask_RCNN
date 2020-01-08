@@ -31,14 +31,8 @@ def main():
 
     imagesGen = Utils.imageFlow(paths=nodeConfig.framesDir, ext='jpg', start=4173, stop=None, step=1)
 
-    for i, batch in enumerate(Utils.batchFlow(imagesGen, 6)):
-        if len(batch) != 6:
-            print('DDDDD', len(batch))
-        if i > 0 and i % 100 == 0:
-            print(f'{i} batches processed')
-
-    # trainer.saveDetectionsV2(imagesGen, inferenceConfig.BATCH_SIZE, pickleDir=None, imagesDir=outputImagesDir,
-    #                          withBoxes=True, onlyMasks=False)
+    trainer.saveDetectionsV2(imagesGen, inferenceConfig.BATCH_SIZE, pickleDir=None, imagesDir=outputImagesDir,
+                              withBoxes=True, onlyMasks=False)
 
 
 if __name__ == '__main__':
