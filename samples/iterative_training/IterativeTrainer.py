@@ -1,3 +1,4 @@
+import json
 import os
 import warnings
 
@@ -12,7 +13,7 @@ from samples.iterative_training.Utils import Utils, contexts
 
 class IterativeTrainer():
     def __init__(self, trainingDataset, validationDataset, testingGenerator, trainingConfig, inferenceConfig,
-                 initialWeights, modelDir, visualize, classBGR, augmentation):
+                 initialWeights, modelDir, visualize, classBGR, augmentation, checkpointFileName):
         self.augmentation = augmentation
         self.classBGR = classBGR
         self.visualize = visualize
@@ -25,6 +26,7 @@ class IterativeTrainer():
         self.modelDir = modelDir
         self._trainableModel = None
         self._inferenceModel = None
+        self.checkpointFileName = checkpointFileName
 
     def getTrainingDataset(self):
         dataset = self.trainingDataset
@@ -82,8 +84,24 @@ class IterativeTrainer():
                              epochs=trainableModel.epoch + 1, layers='4+',
                              augmentation=self.augmentation)
         print('Training stage 3: Finetune all layers')
-        trainableModel.train(trainingDataset, validationDataset, lr / 10,
-                             epochs=trainableModel.epoch + 1, layers='all', augmentation=self.augmentation)
+        history = trainableModel.train(trainingDataset, validationDataset, lr / 10,
+                                       epochs=trainableModel.epoch + 2, layers='all', augmentation=self.augmentation)
+
+        self.saveCheckpoint(trainableModel, history)
+
+    def saveCheckpoint(self, model, history):
+        allEpochsHistory = history.history
+        lastEpochHistory = {k: v[-1] for k, v in allEpochsHistory.items()}
+
+        name = model.config.NAME.lower()
+        epoch = model.epoch
+        checkpointFile = self.checkpointFileName.format(name=name, epoch=epoch, **lastEpochHistory)
+        checkpoint_path = os.path.join(model.log_dir, checkpointFile + '.h5')
+        model.keras_model.save_weights(checkpoint_path, overwrite=True)
+
+        jsonHistoryPath = os.path.join(model.log_dir, checkpointFile + '.history.json')
+        with open(jsonHistoryPath, "wt") as f:
+            json.dump(dict(lastEpoch=lastEpochHistory, all=allEpochsHistory), f, indent=2)
 
     def visualizePredictability(self, imageGenerator=None):
         if not self.visualize:

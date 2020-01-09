@@ -91,10 +91,11 @@ def main_train():
         iaa.Affine(shear=(-10, 10)),
         iaa.Affine(scale=(1, 1.1))
     ])
+    checkpointFileName = "mask_rcnn_{name}_{epoch:04d}"
 
     trainer = IterativeTrainer(trainingDataset, validationDataset, testingGenerator, trainingConfig, inferenceConfig,
                                initialWeights=initialWeights, modelDir=modelDir, visualize=nodeConfig.visualize,
-                               classBGR=None, augmentation=seq)
+                               classBGR=None, augmentation=seq, checkpointFileName=checkpointFileName)
 
     args = parser.parse_args()
     startWithVisualization = args.start == 'vis'
