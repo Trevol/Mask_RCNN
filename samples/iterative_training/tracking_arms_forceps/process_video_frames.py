@@ -24,7 +24,7 @@ def main():
     classBGR = [None, (255, 0, 0), (127, 255, 0), (0, 255, 255),
                 (127, 0, 255)]  # background + arm + forceps + forceps+solder + pin-array
     trainer = IterativeTrainer(None, None, None, None, inferenceConfig, None, modelDir, False, classBGR=classBGR,
-                               augmentation=None)
+                               augmentation=None, checkpointFileName=None)
 
     # pickleDir = os.path.join(nodeConfig.workingDir, 'detect_all/pickles')
     outputImagesDir = os.path.join(nodeConfig.workingDir, 'detect_all/visualization')
