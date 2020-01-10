@@ -31,15 +31,16 @@ def imagesGenerator(reverse, step, paths, ext):
 
 def prepareTrainerInput(imagesDir):
     # labels = ['arm', 'forceps', 'forceps+solder', 'pin-array']
-    labels = ['forceps', 'forceps+solder']
+    # labels = ['forceps', 'forceps+solder']
+    labels = ['forceps+solder']
 
     trainingConfig = TrackingArmsForcepsConfig()
     inferenceConfig = TrackingArmsForcepsInferenceConfig()
 
     dataDir = './data'
 
-    trainXmlAnnotations = ['13_arm_forceps_solder_pin-array.xml']
-    valXmlAnnotations = ['13_arm_forceps_solder_pin-array.xml']
+    trainXmlAnnotations = ['17_arm_forceps_solder_pin-array_2.xml']
+    valXmlAnnotations = ['17_arm_forceps_solder_pin-array_2.xml']
 
     pjn = os.path.join
     trainLabelsAndImageAnnotations = [CvatAnnotation.parse(pjn(dataDir, x)) for x in trainXmlAnnotations]
@@ -50,12 +51,14 @@ def prepareTrainerInput(imagesDir):
         # assert annotLabels == labels
         assert set(labels).issubset(set(annotLabels))
         trainImageAnnotations.extend(imageAnnotations)
+    trainImageAnnotations.sort(key=lambda a: a.name)
 
     valImageAnnotations = []
     for annotLabels, imageAnnotations in valLabelsAndImageAnnotations:
         # assert annotLabels == labels
         assert set(labels).issubset(set(annotLabels))
         valImageAnnotations.extend(imageAnnotations)
+    valImageAnnotations.sort(key=lambda a: a.name)
 
     trainingDataset = CVATDataset('TrackingArmsForceps', labels, [imagesDir, dataDir], trainImageAnnotations)
     validationDataset = CVATDataset('TrackingArmsForceps', labels, [imagesDir, dataDir], valImageAnnotations)

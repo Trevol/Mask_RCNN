@@ -85,7 +85,7 @@ class IterativeTrainer():
                              augmentation=self.augmentation)
         print('Training stage 3: Finetune all layers')
         history = trainableModel.train(trainingDataset, validationDataset, lr / 10,
-                                       epochs=trainableModel.epoch + 2, layers='all', augmentation=self.augmentation)
+                                       epochs=trainableModel.epoch + 1, layers='all', augmentation=self.augmentation)
 
         self.saveCheckpoint(trainableModel, history)
 
