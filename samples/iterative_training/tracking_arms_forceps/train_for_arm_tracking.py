@@ -39,6 +39,15 @@ def prepareTrainerInput(imagesDir):
 
     dataDir = './data'
 
+    negativeSamples = [
+        'f_4177_278466.67_278.47.jpg',
+        'f_4482_298800.00_298.80.jpg',
+        'f_4550_303333.33_303.33.jpg',
+        'f_4595_306333.33_306.33.jpg',
+        'f_4748_316533.33_316.53.jpg',
+        'f_5921_394733.33_394.73.jpg'
+    ]
+
     trainXmlAnnotations = ['17_arm_forceps_solder_pin-array_2.xml']
     valXmlAnnotations = ['17_arm_forceps_solder_pin-array_2.xml']
 
@@ -51,17 +60,17 @@ def prepareTrainerInput(imagesDir):
         # assert annotLabels == labels
         assert set(labels).issubset(set(annotLabels))
         trainImageAnnotations.extend(imageAnnotations)
-    trainImageAnnotations.sort(key=lambda a: a.name)
 
     valImageAnnotations = []
     for annotLabels, imageAnnotations in valLabelsAndImageAnnotations:
         # assert annotLabels == labels
         assert set(labels).issubset(set(annotLabels))
         valImageAnnotations.extend(imageAnnotations)
-    valImageAnnotations.sort(key=lambda a: a.name)
 
-    trainingDataset = CVATDataset('TrackingArmsForceps', labels, [imagesDir, dataDir], trainImageAnnotations)
-    validationDataset = CVATDataset('TrackingArmsForceps', labels, [imagesDir, dataDir], valImageAnnotations)
+    trainingDataset = CVATDataset('TrackingArmsForceps', labels, [imagesDir, dataDir], trainImageAnnotations,
+                                  negativeSamplesFiles=negativeSamples)
+    validationDataset = CVATDataset('TrackingArmsForceps', labels, [imagesDir, dataDir], valImageAnnotations,
+                                    negativeSamplesFiles=negativeSamples)
 
     imGen = Utils.imageFlow(paths=[imagesDir], ext='jpg', start=None, stop=None, step=-10)
     return trainingDataset, validationDataset, imGen, trainingConfig, inferenceConfig
@@ -118,7 +127,7 @@ if __name__ == '__main__':
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         ia.seed(1)
-        # main_explore_dataset()
+        main_explore_dataset()
         main_train()
 
 # export PYTHONPATH=$PYTHONPATH:../../../..

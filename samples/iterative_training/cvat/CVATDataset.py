@@ -5,6 +5,7 @@ import skimage.io
 
 from mrcnn import utils
 from samples.iterative_training.Utils import Utils
+from samples.iterative_training.cvat.CvatAnnotation import CvatAnnotation
 
 
 class CVATDataset(utils.Dataset):
@@ -23,13 +24,17 @@ class CVATDataset(utils.Dataset):
         return image
 
     @staticmethod
-    def makeMask(size, polygons, boxes, labels):
+    def emptyMask(size):
+        return np.empty([*size, 0], np.bool), np.int32([])
+
+    @classmethod
+    def makeMask(cls, size, polygons, boxes, labels):
         polygons = [p for p in polygons if p.label in labels]
         boxes = [b for b in boxes if b.label in labels]
 
         # assert len(polygons) > 0 or len(boxes) > 0
         if len(polygons) == 0 and len(boxes) == 0:
-            return np.empty([*size, 0], np.bool), np.int32([])
+            return cls.emptyMask(size)
 
         polyMasks = [np.zeros(size, np.uint8) for _ in range(len(polygons))]
         for i, p in enumerate(polygons):
@@ -46,7 +51,7 @@ class CVATDataset(utils.Dataset):
         class_ids = np.int32([labels.index(p.label) + 1 for p in polygons + boxes])
         return mask, class_ids
 
-    def __init__(self, name, labels, imagesDirs, imageAnnotations):
+    def __init__(self, name, labels, imagesDirs, imageAnnotations, negativeSamplesFiles=None):
         super(CVATDataset, self).__init__()
         self.name = name
 
@@ -60,14 +65,25 @@ class CVATDataset(utils.Dataset):
         for i, label in enumerate(labels):
             self.add_class(name, i, label)
 
+        imageAnnotations = sorted(imageAnnotations, key=lambda a: a.name)
+
         for i, imageAnnotation in enumerate(imageAnnotations):
             imagePath = Utils.findFilePath(imagesDirs, imageAnnotation.name)
             if not imagePath:
                 raise Exception(f'Can not find {imageAnnotation.name}')
             image = self.loadImageByPath(imagePath)
             mask = self.makeMask(image.shape[:2], imageAnnotation.polygons, imageAnnotation.boxes, labels)
-
             self.add_image(name, i, imagePath, annotation=imageAnnotation, image=image, mask=mask)
+
+        # TODO: merge megative samples to annotated samples (loop above)
+        negativeSamplesFiles = sorted(negativeSamplesFiles)
+        for i, fileName in enumerate(negativeSamplesFiles, start=i + 1):
+            imagePath = Utils.findFilePath(imagesDirs, fileName)
+            image = self.loadImageByPath(imagePath)
+            mask = self.emptyMask(image.shape[:2])
+            annotation = CvatAnnotation.ImageAnnotation(fileName, i, [], [])
+            self.add_image(name, i, imagePath, annotation=annotation, image=image, mask=mask)
+
         self.prepare()
 
     def load_image(self, image_id):
