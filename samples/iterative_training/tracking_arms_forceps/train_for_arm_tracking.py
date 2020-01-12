@@ -45,11 +45,14 @@ def prepareTrainerInput(imagesDir):
         'f_4550_303333.33_303.33.jpg',
         'f_4595_306333.33_306.33.jpg',
         'f_4748_316533.33_316.53.jpg',
-        'f_5921_394733.33_394.73.jpg'
+        'f_5921_394733.33_394.73.jpg',
+        'f_4552_303466.67_303.47.jpg',
+        'f_5661_377400.00_377.40.jpg',
+        'f_8500_566666.67_566.67.jpg'
     ]
 
-    trainXmlAnnotations = ['17_arm_forceps_solder_pin-array_2.xml']
-    valXmlAnnotations = ['17_arm_forceps_solder_pin-array_2.xml']
+    trainXmlAnnotations = ['20_arm_forceps_solder_pin-array_3.xml']
+    valXmlAnnotations = ['20_arm_forceps_solder_pin-array_3.xml']
 
     pjn = os.path.join
     trainLabelsAndImageAnnotations = [CvatAnnotation.parse(pjn(dataDir, x)) for x in trainXmlAnnotations]

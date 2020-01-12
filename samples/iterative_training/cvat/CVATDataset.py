@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import skimage.color
 import skimage.io
+import os
 
 from mrcnn import utils
 from samples.iterative_training.Utils import Utils
@@ -65,24 +66,19 @@ class CVATDataset(utils.Dataset):
         for i, label in enumerate(labels):
             self.add_class(name, i, label)
 
-        imageAnnotations = sorted(imageAnnotations, key=lambda a: a.name)
+        negativeAnnotations = [CvatAnnotation.ImageAnnotation(fileName, i, [], []) for i, fileName in
+                               enumerate(negativeSamplesFiles, len(imageAnnotations) + 1)]
+        imageAnnotations = imageAnnotations + negativeAnnotations
+        imageAnnotations = sorted(imageAnnotations, key=lambda a: a.baseName)
 
         for i, imageAnnotation in enumerate(imageAnnotations):
-            imagePath = Utils.findFilePath(imagesDirs, imageAnnotation.name)
+            fileName = imageAnnotation.baseName
+            imagePath = Utils.findFilePath(imagesDirs, fileName)
             if not imagePath:
-                raise Exception(f'Can not find {imageAnnotation.name}')
+                raise Exception(f'Can not find {fileName}')
             image = self.loadImageByPath(imagePath)
             mask = self.makeMask(image.shape[:2], imageAnnotation.polygons, imageAnnotation.boxes, labels)
             self.add_image(name, i, imagePath, annotation=imageAnnotation, image=image, mask=mask)
-
-        # TODO: merge megative samples to annotated samples (loop above)
-        negativeSamplesFiles = sorted(negativeSamplesFiles)
-        for i, fileName in enumerate(negativeSamplesFiles, start=i + 1):
-            imagePath = Utils.findFilePath(imagesDirs, fileName)
-            image = self.loadImageByPath(imagePath)
-            mask = self.emptyMask(image.shape[:2])
-            annotation = CvatAnnotation.ImageAnnotation(fileName, i, [], [])
-            self.add_image(name, i, imagePath, annotation=annotation, image=image, mask=mask)
 
         self.prepare()
 

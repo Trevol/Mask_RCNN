@@ -1,10 +1,11 @@
 from xml.etree import ElementTree as ET
-
+import os
 
 class CvatAnnotation:
     class ImageAnnotation:
         def __init__(self, name, id, polygons=None, boxes=None):
             self.name = name
+            self.baseName = os.path.basename(name)
             self.id = id
             self.polygons = [] if polygons is None else polygons
             self.boxes = [] if boxes is None else boxes
