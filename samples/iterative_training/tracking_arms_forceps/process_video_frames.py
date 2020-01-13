@@ -26,10 +26,12 @@ def main():
     trainer = IterativeTrainer(None, None, None, None, inferenceConfig, None, modelDir, False, classBGR=classBGR,
                                augmentation=None, checkpointFileName=None)
 
-    # outputImagesDir = os.path.join(nodeConfig.workingDir, 'detect_all/visualization')
+    # outputImagesDir = os.path.join(nodeConfig.workingDir, 'detect_all/frames_6/visualization')
     # imagesGen = Utils.imageFlow(paths=nodeConfig.framesDir, ext='jpg', start=4173, stop=None, step=1)
+
     outputImagesDir = os.path.join(nodeConfig.workingDir, 'detect_all/frames_2/visualization')
-    imagesGen = Utils.imageFlow(paths=os.path.join(Path(nodeConfig.framesDir).parent, 'frames_2'), ext='jpg', start=4173, stop=None, step=1)
+    pathToFrames2 = os.path.join(Path(nodeConfig.framesDir).parent, 'frames_2')
+    imagesGen = Utils.imageFlow(paths=pathToFrames2, ext='jpg', start=1754, stop=None, step=1)
 
     trainer.saveDetectionsV2(imagesGen, inferenceConfig.BATCH_SIZE, pickleDir=None, imagesDir=outputImagesDir,
                              withBoxes=True, onlyMasks=False)
