@@ -1,6 +1,6 @@
 import argparse
 import os
-
+from pathlib import Path
 from samples.iterative_training.Utils import Utils
 from samples.iterative_training.tracking_arms_forceps.TrackingArmsForcepsConfig import \
     TrackingArmsForcepsInferenceConfig
@@ -26,13 +26,13 @@ def main():
     trainer = IterativeTrainer(None, None, None, None, inferenceConfig, None, modelDir, False, classBGR=classBGR,
                                augmentation=None, checkpointFileName=None)
 
-    # pickleDir = os.path.join(nodeConfig.workingDir, 'detect_all/pickles')
-    outputImagesDir = os.path.join(nodeConfig.workingDir, 'detect_all/visualization')
-
-    imagesGen = Utils.imageFlow(paths=nodeConfig.framesDir, ext='jpg', start=4173, stop=None, step=1)
+    # outputImagesDir = os.path.join(nodeConfig.workingDir, 'detect_all/visualization')
+    # imagesGen = Utils.imageFlow(paths=nodeConfig.framesDir, ext='jpg', start=4173, stop=None, step=1)
+    outputImagesDir = os.path.join(nodeConfig.workingDir, 'detect_all/frames_2/visualization')
+    imagesGen = Utils.imageFlow(paths=os.path.join(Path(nodeConfig.framesDir).parent, 'frames_2'), ext='jpg', start=4173, stop=None, step=1)
 
     trainer.saveDetectionsV2(imagesGen, inferenceConfig.BATCH_SIZE, pickleDir=None, imagesDir=outputImagesDir,
-                              withBoxes=True, onlyMasks=False)
+                             withBoxes=True, onlyMasks=False)
 
 
 if __name__ == '__main__':

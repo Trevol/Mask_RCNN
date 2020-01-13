@@ -14,7 +14,7 @@ nodesConfigs = {
     ),
     "trevol-gpu-server": NodeConfig(
         framesDir="/nvme_data/pin_n_solder/frames_6",
-        initialWeights='/trevol_gpu_nb_share/mask-rcnn/mask_rcnn_coco.h5',
+        initialWeights='/nvme_data/pin_n_solder/mask-rcnn/mask_rcnn_coco.h5',
         # workingDir="/nvme_data/pin_n_solder/mask-rcnn/tracking_arms_forceps",
         workingDir="/nvme_data/pin_n_solder/mask-rcnn/tracking_forceps_w_solder",
         IMAGES_PER_GPU=2,
