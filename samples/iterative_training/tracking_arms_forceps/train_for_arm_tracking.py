@@ -39,20 +39,20 @@ def prepareTrainerInput(imagesDir):
 
     dataDir = './data'
 
-    negativeSamples = [
-        'f_4177_278466.67_278.47.jpg',
-        'f_4482_298800.00_298.80.jpg',
-        'f_4550_303333.33_303.33.jpg',
-        'f_4595_306333.33_306.33.jpg',
-        'f_4748_316533.33_316.53.jpg',
-        'f_5921_394733.33_394.73.jpg',
-        'f_4552_303466.67_303.47.jpg',
-        'f_5661_377400.00_377.40.jpg',
-        'f_8500_566666.67_566.67.jpg'
+    vid6_frames_negativeSamples = [
+        4176,
+        4481,
+        4549,
+        4594,
+        4747,
+        5920,
+        4551,
+        5660,
+        8499
     ]
 
-    trainXmlAnnotations = ['20_arm_forceps_solder_pin-array_3.xml']
-    valXmlAnnotations = ['20_arm_forceps_solder_pin-array_3.xml']
+    trainXmlAnnotations = ['23_vid6_ arm_forceps_solder_pin-array.xml']
+    valXmlAnnotations = ['23_vid6_ arm_forceps_solder_pin-array.xml']
 
     pjn = os.path.join
     trainLabelsAndImageAnnotations = [CvatAnnotation.parse(pjn(dataDir, x)) for x in trainXmlAnnotations]
@@ -70,10 +70,10 @@ def prepareTrainerInput(imagesDir):
         assert set(labels).issubset(set(annotLabels))
         valImageAnnotations.extend(imageAnnotations)
 
-    trainingDataset = CVATDataset('TrackingArmsForceps', labels, [imagesDir, dataDir], trainImageAnnotations,
-                                  negativeSamplesFiles=negativeSamples)
-    validationDataset = CVATDataset('TrackingArmsForceps', labels, [imagesDir, dataDir], valImageAnnotations,
-                                    negativeSamplesFiles=negativeSamples)
+    trainingDataset = CVATDataset('video', 'TrackingArmsForceps', labels, [imagesDir, dataDir], trainImageAnnotations,
+                                  negativeSamples=vid6_frames_negativeSamples)
+    validationDataset = CVATDataset('video', 'TrackingArmsForceps', labels, [imagesDir, dataDir], valImageAnnotations,
+                                    negativeSamples=vid6_frames_negativeSamples)
 
     imGen = Utils.imageFlow(paths=[imagesDir], ext='jpg', start=None, stop=None, step=-10)
     return trainingDataset, validationDataset, imGen, trainingConfig, inferenceConfig
@@ -130,7 +130,7 @@ if __name__ == '__main__':
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         ia.seed(1)
-        # main_explore_dataset()
-        main_train()
+        main_explore_dataset()
+        # main_train()
 
 # export PYTHONPATH=$PYTHONPATH:../../../..

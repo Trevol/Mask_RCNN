@@ -52,33 +52,52 @@ class CVATDataset(utils.Dataset):
         class_ids = np.int32([labels.index(p.label) + 1 for p in polygons + boxes])
         return mask, class_ids
 
-    def __init__(self, name, labels, imagesDirs, imageAnnotations, negativeSamplesFiles=None):
+    @staticmethod
+    def normalizeDirs(dirs):
+        assert dirs is None or isinstance(dirs, (str, list))
+        if dirs is None:
+            return []
+        if isinstance(dirs, str):
+            return [dirs]
+        return dirs
+
+    def __init__(self, mode, name, labels, imagesDirs, imageAnnotations, negativeSamples=None):
+        assert mode in ['video', 'images']
+
         super(CVATDataset, self).__init__()
+
+        self.mode = mode
         self.name = name
 
-        assert imagesDirs is None or isinstance(imagesDirs, (str, list))
-        if imagesDirs is None:
-            imagesDirs = []
-        if isinstance(imagesDirs, str):
-            imagesDirs = [imagesDirs]
+        imagesDirs = self.normalizeDirs(imagesDirs)
 
         self.labels = labels
         for i, label in enumerate(labels):
             self.add_class(name, i, label)
 
-        negativeAnnotations = [CvatAnnotation.ImageAnnotation(fileName, i, [], []) for i, fileName in
-                               enumerate(negativeSamplesFiles, len(imageAnnotations) + 1)]
+        if mode == 'images':  # negative samples are file names
+            negativeAnnotations = [CvatAnnotation.ImageAnnotation(fileName, i, [], []) for i, fileName in
+                                   enumerate(negativeSamples, len(imageAnnotations) + 1)]
+        else:  # mode == 'video' - negative samples are frames positions
+            negativeAnnotations = [CvatAnnotation.ImageAnnotation(f'frame_{framePos:06d}', framePos, [], []) for
+                                   framePos in negativeSamples]
         imageAnnotations = imageAnnotations + negativeAnnotations
-        imageAnnotations = sorted(imageAnnotations, key=lambda a: a.baseName)
+        imageAnnotations = sorted(imageAnnotations, key=lambda a: a.id)
 
-        for i, imageAnnotation in enumerate(imageAnnotations):
-            fileName = imageAnnotation.baseName
+        if mode == 'images':
+            fileNameFn = lambda ann: ann.baseName
+        else:
+            fileNameFn = lambda ann: f'{ann.id:06d}.jpg'
+
+        for imageAnnotation in imageAnnotations:
+            fileName = fileNameFn(imageAnnotation)
+            id = imageAnnotation.id
             imagePath = Utils.findFilePath(imagesDirs, fileName)
             if not imagePath:
                 raise Exception(f'Can not find {fileName}')
             image = self.loadImageByPath(imagePath)
             mask = self.makeMask(image.shape[:2], imageAnnotation.polygons, imageAnnotation.boxes, labels)
-            self.add_image(name, i, imagePath, annotation=imageAnnotation, image=image, mask=mask)
+            self.add_image(name, id, imagePath, annotation=imageAnnotation, image=image, mask=mask)
 
         self.prepare()
 

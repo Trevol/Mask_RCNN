@@ -5,7 +5,7 @@ NodeConfig = namedtuple("NodeConfig", ["framesDir", 'initialWeights', "workingDi
 
 nodesConfigs = {
     "trevol-gpu-nb": NodeConfig(
-        framesDir="/HDD_DATA/nfs_share/frames_6",
+        framesDir="/HDD_DATA/nfs_share/video_6",
         initialWeights='/HDD_DATA/nfs_share/mask-rcnn/mask_rcnn_coco.h5',
         # workingDir="/HDD_DATA/nfs_share/mask-rcnn/tracking_arms_forceps",
         workingDir="/HDD_DATA/nfs_share/mask-rcnn/tracking_forceps_w_solder",
@@ -13,7 +13,7 @@ nodesConfigs = {
         visualize=True
     ),
     "trevol-gpu-server": NodeConfig(
-        framesDir="/nvme_data/pin_n_solder/frames_6",
+        framesDir="/nvme_data/pin_n_solder/video_6",
         initialWeights='/nvme_data/pin_n_solder/mask-rcnn/mask_rcnn_coco.h5',
         # workingDir="/nvme_data/pin_n_solder/mask-rcnn/tracking_arms_forceps",
         workingDir="/nvme_data/pin_n_solder/mask-rcnn/tracking_forceps_w_solder",
