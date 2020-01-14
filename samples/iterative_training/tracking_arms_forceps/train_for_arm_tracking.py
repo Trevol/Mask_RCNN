@@ -29,7 +29,7 @@ def imagesGenerator(reverse, step, paths, ext):
             yield os.path.basename(imagePath), skimage.io.imread(imagePath)
 
 
-def prepareTrainerInput(imagesDir):
+def prepareTrainerInput(frames6Dir, frames2Dir):
     # labels = ['arm', 'forceps', 'forceps+solder', 'pin-array']
     # labels = ['forceps', 'forceps+solder']
     labels = ['forceps+solder']
@@ -49,6 +49,8 @@ def prepareTrainerInput(imagesDir):
         4551,
         5660,
         8499
+    ]
+    vid2_frames_negativeSamples = [
     ]
 
     trainXmlAnnotations = ['23_vid6_ arm_forceps_solder_pin-array.xml']
@@ -70,12 +72,12 @@ def prepareTrainerInput(imagesDir):
         assert set(labels).issubset(set(annotLabels))
         valImageAnnotations.extend(imageAnnotations)
 
-    trainingDataset = CVATDataset('video', 'TrackingArmsForceps', labels, [imagesDir, dataDir], trainImageAnnotations,
+    trainingDataset = CVATDataset('video', 'TrackingArmsForceps', labels, frames6Dir, trainImageAnnotations,
                                   negativeSamples=vid6_frames_negativeSamples)
-    validationDataset = CVATDataset('video', 'TrackingArmsForceps', labels, [imagesDir, dataDir], valImageAnnotations,
+    validationDataset = CVATDataset('video', 'TrackingArmsForceps', labels, frames6Dir, valImageAnnotations,
                                     negativeSamples=vid6_frames_negativeSamples)
 
-    imGen = Utils.imageFlow(paths=[imagesDir], ext='jpg', start=None, stop=None, step=-10)
+    imGen = Utils.imageFlow(paths=[frames6Dir], ext='jpg', start=None, stop=None, step=-100)
     return trainingDataset, validationDataset, imGen, trainingConfig, inferenceConfig
 
 
@@ -91,11 +93,10 @@ def main_train():
     os.makedirs(nodeConfig.workingDir, exist_ok=True)
 
     modelDir = os.path.join(nodeConfig.workingDir, 'logs')
-    imagesDir = nodeConfig.framesDir
     TrackingArmsForcepsConfig.IMAGES_PER_GPU = nodeConfig.IMAGES_PER_GPU
 
     trainingDataset, validationDataset, testingGenerator, trainingConfig, inferenceConfig = \
-        prepareTrainerInput(imagesDir)
+        prepareTrainerInput(nodeConfig.frames6Dir, nodeConfig.frames2Dir)
 
     seq = iaa.Sequential([
         iaa.Crop(px=(0, 16)),  # crop images from each side by 0 to 16px (randomly chosen)
@@ -120,8 +121,8 @@ def main_train():
 
 
 def main_explore_dataset():
-    imagesDir = nodeConfig.framesDir
-    trainingDataset, validationDataset, testingGenerator, _, _ = prepareTrainerInput(imagesDir)
+    trainingDataset, validationDataset, testingGenerator, _, _ = prepareTrainerInput(nodeConfig.frames6Dir,
+                                                                                     nodeConfig.frames2Dir)
     Utils.exploreDatasets(trainingDataset, validationDataset)
 
 
@@ -133,4 +134,4 @@ if __name__ == '__main__':
         # main_explore_dataset()
         main_train()
 
-# export PYTHONPATH=$PYTHONPATH:../../../..
+# export PYTHONPATH=$PYTHONPATH:../../..
