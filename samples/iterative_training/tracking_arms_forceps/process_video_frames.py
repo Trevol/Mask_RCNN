@@ -35,9 +35,10 @@ def main():
 
     detectAllDir = getDetectionOutputDir(trainer.findLastWeights())
 
-    for subsetName, framesPath in [('video_6', nodeConfig.frames6Dir), ('video_2', nodeConfig.frames2Dir)]:
+    subsets = [('video_6', nodeConfig.frames6Dir, 4173), ('video_2', nodeConfig.frames2Dir, 1754)]
+    for subsetName, framesPath, startFrame in subsets:
         outputImagesDir = os.path.join(framesPath, detectAllDir, subsetName)
-        imagesGen = Utils.imageFlow(paths=nodeConfig.framesDir, ext='jpg', start=4173, stop=None, step=1)
+        imagesGen = Utils.imageFlow(paths=framesPath, ext='jpg', start=startFrame, stop=None, step=1)
         trainer.saveDetectionsV2(imagesGen, inferenceConfig.BATCH_SIZE, pickleDir=None, imagesDir=outputImagesDir,
                                  withBoxes=True, onlyMasks=False)
 
