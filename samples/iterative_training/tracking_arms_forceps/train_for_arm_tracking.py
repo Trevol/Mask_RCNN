@@ -18,8 +18,7 @@ import imgaug.augmenters as iaa
 
 def imagesGenerator(reverse, step, paths, ext):
     assert isinstance(paths, (list, str))
-    if isinstance(paths, str):
-        paths = [paths]
+    paths = Utils.normalizeList(paths)
     assert len(paths)
 
     import glob, skimage.io
@@ -30,13 +29,13 @@ def imagesGenerator(reverse, step, paths, ext):
 
 
 def imAnnotations(requiredLabels, cvatImageAnnotationFiles):
-    labelsAndImageAnnotations = [CvatAnnotation.parse(f) for f in cvatImageAnnotationFiles]
+    labelsAndImageAnnotations = [CvatAnnotation.parse(f) for f in Utils.normalizeList(cvatImageAnnotationFiles)]
 
-    imageAnnotations = []
+    allAnnotations = []
     for annotLabels, imageAnnotations in labelsAndImageAnnotations:
         assert set(requiredLabels).issubset(set(annotLabels))
-        imageAnnotations.extend(imageAnnotations)
-    return imageAnnotations
+        allAnnotations.extend(imageAnnotations)
+    return allAnnotations
 
 
 def prepareTrainerInput(frames6Dir, frames2Dir):
@@ -44,30 +43,19 @@ def prepareTrainerInput(frames6Dir, frames2Dir):
     # labels = ['forceps', 'forceps+solder']
     labels = ['forceps+solder']
 
-    vid6_frames_negativeSamples = [
-        4176,
-        4481,
-        4549,
-        4594,
-        4747,
-        5920,
-        4551,
-        5660,
-        8499
-    ]
-    vid2_frames_negativeSamples = [
+    datasetDescriptions = [
+        (
+            'video',
+            frames6Dir,  # dir or dirs where frames located - str or list<str>
+            imAnnotations(labels, 'data/23_vid6_ arm_forceps_solder_pin-array.xml'),  # imageAnnotations
+            [4176, 4481, 4549, 4594, 4747, 5920, 4551, 5660, 8499]  # negative samples
+        )
     ]
 
-    trainXmlAnnotations = ['./data/23_vid6_ arm_forceps_solder_pin-array.xml']
-
-    trainImageAnnotations = imAnnotations(labels, trainXmlAnnotations)
-
-    trainingDataset = CVATDataset('video', 'TrackingArmsForceps', labels, frames6Dir, trainImageAnnotations,
-                                  negativeSamples=vid6_frames_negativeSamples)
-    validationDataset = trainingDataset
-
+    trainDataset = CVATDataset('TrackingArmsForceps', labels, datasetDescriptions)
+    valDataset = trainDataset
     imGen = Utils.imageFlow(paths=[frames6Dir, frames2Dir], ext='jpg', start=None, stop=None, step=-200)
-    return trainingDataset, validationDataset, imGen
+    return trainDataset, valDataset, imGen
 
 
 def main_train():
@@ -83,9 +71,6 @@ def main_train():
 
     modelDir = os.path.join(nodeConfig.workingDir, 'logs')
 
-    trainingConfig = TrackingArmsForcepsConfig(nodeConfig.IMAGES_PER_GPU)
-    inferenceConfig = TrackingArmsForcepsInferenceConfig()
-
     trainingDataset, validationDataset, testingGenerator = \
         prepareTrainerInput(nodeConfig.frames6Dir, nodeConfig.frames2Dir)
 
@@ -98,7 +83,10 @@ def main_train():
         iaa.Affine(shear=(-10, 10)),
         iaa.Affine(scale=(1, 1.1))
     ])
+
     checkpointFileName = "mask_rcnn_{name}_{epoch:04d}"
+    trainingConfig = TrackingArmsForcepsConfig(nodeConfig.IMAGES_PER_GPU)
+    inferenceConfig = TrackingArmsForcepsInferenceConfig()
 
     trainer = IterativeTrainer(trainingDataset, validationDataset, testingGenerator, trainingConfig, inferenceConfig,
                                initialWeights=initialWeights, modelDir=modelDir, visualize=nodeConfig.visualize,
@@ -114,7 +102,8 @@ def main_train():
 def main_explore_dataset():
     trainingDataset, validationDataset, testingGenerator = prepareTrainerInput(nodeConfig.frames6Dir,
                                                                                nodeConfig.frames2Dir)
-    Utils.exploreDatasets(trainingDataset, validationDataset)
+    # Utils.exploreDatasets(trainingDataset, validationDataset)
+    Utils.exploreDatasets(trainingDataset)
 
 
 if __name__ == '__main__':
@@ -122,7 +111,7 @@ if __name__ == '__main__':
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         ia.seed(1)
-        # main_explore_dataset()
-        main_train()
+        main_explore_dataset()
+        # main_train()
 
 # export PYTHONPATH=$PYTHONPATH:../../..

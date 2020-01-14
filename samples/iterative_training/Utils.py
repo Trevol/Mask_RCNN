@@ -246,6 +246,14 @@ class Utils:
                 yield batch
                 batch = [item]
 
+    @staticmethod
+    def normalizeList(items):
+        if items is None:
+            return []
+        if isinstance(items, list):
+            return items
+        return [items]
+
 
 class contexts:
     def __init__(self, *contextObjects):
