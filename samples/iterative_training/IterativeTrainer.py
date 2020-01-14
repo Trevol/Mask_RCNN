@@ -172,7 +172,8 @@ class IterativeTrainer():
             if i > 0 and i % 50 == 0:
                 print(f'{i} images processed')
 
-    def saveDetectionsV2(self, imagesGenerator, batchSize, pickleDir, imagesDir, withBoxes: bool, onlyMasks: bool):
+    def saveDetectionsV2(self, imagesGenerator, batchSize, pickleDir, imagesDir, withBoxes: bool, onlyMasks: bool,
+                         imageQuality=75):
         assert pickleDir or imagesDir
         assert imagesDir and (withBoxes or onlyMasks)
 
@@ -202,11 +203,11 @@ class IterativeTrainer():
                 if withBoxes:
                     imageWithBoxes = Utils.display_instances(image.copy(), boxes, masks, classIds, scores,
                                                              'classes', self.classBGR, True, True, True)
-                    skimage.io.imsave(os.path.join(withBoxesDir, imageFile), imageWithBoxes)
+                    skimage.io.imsave(os.path.join(withBoxesDir, imageFile), imageWithBoxes, quality=imageQuality)
                 if onlyMasks:
                     imageOnlyMasks = Utils.display_instances(image.copy(), boxes, masks, classIds, scores,
                                                              'classes', self.classBGR, False, True, False)
-                    skimage.io.imsave(os.path.join(onlyMasksDir, imageFile), imageOnlyMasks)
+                    skimage.io.imsave(os.path.join(onlyMasksDir, imageFile), imageOnlyMasks, quality=imageQuality)
 
         for i, batch in enumerate(Utils.batchFlow(imagesGenerator, batchSize)):
             imBatch = list(map(lambda b: b[1], batch))
