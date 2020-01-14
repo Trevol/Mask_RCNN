@@ -18,8 +18,9 @@ class Args:
 def getDetectionOutputDir(weightsFile):
     from datetime import datetime
     now = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
-    weightsNum = os.path.basename(weightsFile).split('_')[-1]
-    return f'detect_all_{weightsNum}_{now}'
+    nameWithoutExt = os.path.splitext(os.path.basename(weightsFile))[0]
+    weightsNum = nameWithoutExt.split('_')[-1]
+    return f'detect_all/{weightsNum}_{now}'
 
 
 def main():
@@ -37,8 +38,8 @@ def main():
 
     subsets = [('video_6', nodeConfig.frames6Dir, 4173), ('video_2', nodeConfig.frames2Dir, 1754)]
     for subsetName, framesPath, startFrame in subsets:
-        outputImagesDir = os.path.join(framesPath, detectAllDir, subsetName)
         imagesGen = Utils.imageFlow(paths=framesPath, ext='jpg', start=startFrame, stop=None, step=1)
+        outputImagesDir = os.path.join(nodeConfig.workingDir, detectAllDir, subsetName)
         trainer.saveDetectionsV2(imagesGen, inferenceConfig.BATCH_SIZE, pickleDir=None, imagesDir=outputImagesDir,
                                  withBoxes=True, onlyMasks=False)
 
