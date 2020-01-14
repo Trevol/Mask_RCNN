@@ -29,15 +29,20 @@ def imagesGenerator(reverse, step, paths, ext):
             yield os.path.basename(imagePath), skimage.io.imread(imagePath)
 
 
+def imAnnotations(requiredLabels, cvatImageAnnotationFiles):
+    labelsAndImageAnnotations = [CvatAnnotation.parse(f) for f in cvatImageAnnotationFiles]
+
+    imageAnnotations = []
+    for annotLabels, imageAnnotations in labelsAndImageAnnotations:
+        assert set(requiredLabels).issubset(set(annotLabels))
+        imageAnnotations.extend(imageAnnotations)
+    return imageAnnotations
+
+
 def prepareTrainerInput(frames6Dir, frames2Dir):
     # labels = ['arm', 'forceps', 'forceps+solder', 'pin-array']
     # labels = ['forceps', 'forceps+solder']
     labels = ['forceps+solder']
-
-    trainingConfig = TrackingArmsForcepsConfig()
-    inferenceConfig = TrackingArmsForcepsInferenceConfig()
-
-    dataDir = './data'
 
     vid6_frames_negativeSamples = [
         4176,
@@ -53,32 +58,16 @@ def prepareTrainerInput(frames6Dir, frames2Dir):
     vid2_frames_negativeSamples = [
     ]
 
-    trainXmlAnnotations = ['23_vid6_ arm_forceps_solder_pin-array.xml']
-    valXmlAnnotations = ['23_vid6_ arm_forceps_solder_pin-array.xml']
+    trainXmlAnnotations = ['./data/23_vid6_ arm_forceps_solder_pin-array.xml']
 
-    pjn = os.path.join
-    trainLabelsAndImageAnnotations = [CvatAnnotation.parse(pjn(dataDir, x)) for x in trainXmlAnnotations]
-    valLabelsAndImageAnnotations = [CvatAnnotation.parse(pjn(dataDir, x)) for x in valXmlAnnotations]
-
-    trainImageAnnotations = []
-    for annotLabels, imageAnnotations in trainLabelsAndImageAnnotations:
-        # assert annotLabels == labels
-        assert set(labels).issubset(set(annotLabels))
-        trainImageAnnotations.extend(imageAnnotations)
-
-    valImageAnnotations = []
-    for annotLabels, imageAnnotations in valLabelsAndImageAnnotations:
-        # assert annotLabels == labels
-        assert set(labels).issubset(set(annotLabels))
-        valImageAnnotations.extend(imageAnnotations)
+    trainImageAnnotations = imAnnotations(labels, trainXmlAnnotations)
 
     trainingDataset = CVATDataset('video', 'TrackingArmsForceps', labels, frames6Dir, trainImageAnnotations,
                                   negativeSamples=vid6_frames_negativeSamples)
-    validationDataset = CVATDataset('video', 'TrackingArmsForceps', labels, frames6Dir, valImageAnnotations,
-                                    negativeSamples=vid6_frames_negativeSamples)
+    validationDataset = trainingDataset
 
-    imGen = Utils.imageFlow(paths=[frames6Dir], ext='jpg', start=None, stop=None, step=-100)
-    return trainingDataset, validationDataset, imGen, trainingConfig, inferenceConfig
+    imGen = Utils.imageFlow(paths=[frames6Dir, frames2Dir], ext='jpg', start=None, stop=None, step=-200)
+    return trainingDataset, validationDataset, imGen
 
 
 def main_train():
@@ -93,9 +82,11 @@ def main_train():
     os.makedirs(nodeConfig.workingDir, exist_ok=True)
 
     modelDir = os.path.join(nodeConfig.workingDir, 'logs')
-    TrackingArmsForcepsConfig.IMAGES_PER_GPU = nodeConfig.IMAGES_PER_GPU
 
-    trainingDataset, validationDataset, testingGenerator, trainingConfig, inferenceConfig = \
+    trainingConfig = TrackingArmsForcepsConfig(nodeConfig.IMAGES_PER_GPU)
+    inferenceConfig = TrackingArmsForcepsInferenceConfig()
+
+    trainingDataset, validationDataset, testingGenerator = \
         prepareTrainerInput(nodeConfig.frames6Dir, nodeConfig.frames2Dir)
 
     seq = iaa.Sequential([
@@ -121,8 +112,8 @@ def main_train():
 
 
 def main_explore_dataset():
-    trainingDataset, validationDataset, testingGenerator, _, _ = prepareTrainerInput(nodeConfig.frames6Dir,
-                                                                                     nodeConfig.frames2Dir)
+    trainingDataset, validationDataset, testingGenerator = prepareTrainerInput(nodeConfig.frames6Dir,
+                                                                               nodeConfig.frames2Dir)
     Utils.exploreDatasets(trainingDataset, validationDataset)
 
 

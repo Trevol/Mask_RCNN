@@ -28,10 +28,9 @@ class TrackingArmsForcepsConfig(Config):
     IMAGE_MIN_DIM = 512
     IMAGE_MAX_DIM = 512
 
+    def __init__(self, imagesPerGpu=1):
+        self.IMAGES_PER_GPU = imagesPerGpu or self.IMAGES_PER_GPU
+        super(TrackingArmsForcepsConfig, self).__init__()
 
 class TrackingArmsForcepsInferenceConfig(TrackingArmsForcepsConfig):
     IMAGES_PER_GPU = 1
-
-    def __init__(self, imagesPerGpu=1):
-        self.IMAGES_PER_GPU = imagesPerGpu or self.IMAGES_PER_GPU
-        super(TrackingArmsForcepsInferenceConfig, self).__init__()
