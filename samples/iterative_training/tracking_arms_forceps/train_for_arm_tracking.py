@@ -53,8 +53,8 @@ def prepareTrainerInput(frames6Dir, frames2Dir):
         (
             'video',
             frames2Dir,  # dir or dirs where frames located - str or list<str>
-            imAnnotations(labels, 'data/23_vid2_ arm_forceps_solder_pin-array.xml'),  # imageAnnotations
-            [0, 10, 1759, 1763]  # negative samples
+            imAnnotations(labels, 'data/24_vid2_ arm_forceps_solder_pin-array.xml'),  # imageAnnotations
+            [0, 10, 1759, 1763, 2416]  # negative samples
         )
     ]
 
@@ -105,19 +105,11 @@ def main_train():
     # trainer.visualizePredictability()
 
 
-def main_explore_dataset():
-    trainingDataset, validationDataset, testingGenerator = prepareTrainerInput(nodeConfig.frames6Dir,
-                                                                               nodeConfig.frames2Dir)
-    # Utils.exploreDatasets(trainingDataset, validationDataset)
-    Utils.exploreDatasets(trainingDataset)
-
-
 if __name__ == '__main__':
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         ia.seed(1)
-        main_explore_dataset()
-        # main_train()
+        main_train()
 
 # export PYTHONPATH=$PYTHONPATH:../../..
