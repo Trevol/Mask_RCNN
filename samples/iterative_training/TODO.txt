@@ -2,6 +2,7 @@
 #     ++++++ save video frames in 000000 format-:06d: 000000
 #     ++++++ convert existing frames_6 annotation to video format
 #     support new format in CvatDataset/CvatAnnotation and in client code
+#     support annotation/training/process for video_6/video_2
 #     explore datasets with new format
 #     make new annotation task for video_6.mp4 and upload converted annotation
 #     parse video annotation

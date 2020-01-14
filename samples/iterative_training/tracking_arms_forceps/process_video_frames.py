@@ -15,6 +15,13 @@ class Args:
         return cls.parser.parse_args()
 
 
+def getDetectionOutputDir(weightsFile):
+    from datetime import datetime
+    now = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+    weightsNum = os.path.basename(weightsFile).split('_')[-1]
+    return f'detect_all_{weightsNum}_{now}'
+
+
 def main():
     from samples.iterative_training.IterativeTrainer import IterativeTrainer
 
@@ -26,15 +33,13 @@ def main():
     trainer = IterativeTrainer(None, None, None, None, inferenceConfig, None, modelDir, False, classBGR=classBGR,
                                augmentation=None, checkpointFileName=None)
 
-    # outputImagesDir = os.path.join(nodeConfig.workingDir, 'detect_all/frames_6/visualization')
-    # imagesGen = Utils.imageFlow(paths=nodeConfig.framesDir, ext='jpg', start=4173, stop=None, step=1)
+    detectAllDir = getDetectionOutputDir(trainer.findLastWeights())
 
-    outputImagesDir = os.path.join(nodeConfig.workingDir, 'detect_all/frames_2/visualization')
-    pathToFrames2 = os.path.join(Path(nodeConfig.framesDir).parent, 'frames_2')
-    imagesGen = Utils.imageFlow(paths=pathToFrames2, ext='jpg', start=1754, stop=None, step=1)
-
-    trainer.saveDetectionsV2(imagesGen, inferenceConfig.BATCH_SIZE, pickleDir=None, imagesDir=outputImagesDir,
-                             withBoxes=True, onlyMasks=False)
+    for subsetName, framesPath in [('video_6', nodeConfig.frames6Dir), ('video_2', nodeConfig.frames2Dir)]:
+        outputImagesDir = os.path.join(framesPath, detectAllDir, subsetName)
+        imagesGen = Utils.imageFlow(paths=nodeConfig.framesDir, ext='jpg', start=4173, stop=None, step=1)
+        trainer.saveDetectionsV2(imagesGen, inferenceConfig.BATCH_SIZE, pickleDir=None, imagesDir=outputImagesDir,
+                                 withBoxes=True, onlyMasks=False)
 
 
 if __name__ == '__main__':

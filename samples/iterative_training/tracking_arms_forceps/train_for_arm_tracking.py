@@ -130,7 +130,7 @@ if __name__ == '__main__':
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         ia.seed(1)
-        main_explore_dataset()
-        # main_train()
+        # main_explore_dataset()
+        main_train()
 
 # export PYTHONPATH=$PYTHONPATH:../../../..
