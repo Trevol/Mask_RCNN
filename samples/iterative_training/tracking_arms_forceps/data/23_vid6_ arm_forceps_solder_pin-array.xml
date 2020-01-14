@@ -10,7 +10,7 @@
       <overlap>5</overlap>
       <bugtracker></bugtracker>
       <created>2020-01-13 11:29:46.479139+00:00</created>
-      <updated>2020-01-13 11:54:16.250392+00:00</updated>
+      <updated>2020-01-14 14:14:20.731233+00:00</updated>
       <start_frame>0</start_frame>
       <stop_frame>8499</stop_frame>
       <frame_filter></frame_filter>
@@ -55,7 +55,7 @@
         <height>1080</height>
       </original_size>
     </task>
-    <dumped>2020-01-13 11:56:55.687908+00:00</dumped>
+    <dumped>2020-01-14 14:24:17.508058+00:00</dumped>
     <source>video_6.mp4</source>
   </meta>
   <image id="4864" name="frame_004864" width="1920" height="1080">
@@ -72,6 +72,10 @@
   </image>
   <image id="8330" name="frame_008330" width="1920" height="1080">
     <polygon label="forceps+solder" occluded="0" points="1164.73,130.88;1173.91,108.48;1186.40,114.72;1190.44,116.19;1207.70,120.60;1225.32,126.11;1242.58,133.82;1259.48,142.63;1266.09,149.97;1270.12,159.16;1263.15,166.13;1249.19,163.56;1231.57,156.22;1210.64,146.67;1208.07,144.47;1190.44,141.16" z_order="1">
+    </polygon>
+  </image>
+  <image id="4747" name="frame_004747" width="1920" height="1080">
+    <polygon label="forceps+solder" occluded="0" points="1332.12,808.81;1356.23,813.89;1360.04,791.68;1374.00,768.20;1389.86,758.68;1424.13,761.22;1446.97,766.93;1465.37,784.70;1474.89,806.27;1476.80,829.75;1469.18,847.52;1455.86,862.75;1439.36,869.09;1410.80,872.26;1382.25,861.48;1367.65,846.88;1363.85,839.27;1334.66,831.02;1329.58,829.75" z_order="1">
     </polygon>
   </image>
   <image id="5902" name="frame_005902" width="1920" height="1080">

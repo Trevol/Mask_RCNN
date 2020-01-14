@@ -60,7 +60,7 @@ class CVATDataset(utils.Dataset):
         for i, label in enumerate(labels):
             self.add_class(name, i, label)
 
-        globalId = -1
+        # TODO: check - there is not intersections between annotated samples and negative ones
         for setId, (mode, imagesDirs, imageAnnotations, negativeSamples) in enumerate(datasetDescriptions):
             assert mode in ['video', 'images']
 
@@ -88,8 +88,7 @@ class CVATDataset(utils.Dataset):
                     raise Exception(f'Can not find {fileName}')
                 image = self.loadImageByPath(imagePath)
                 mask = self.makeMask(image.shape[:2], imageAnnotation.polygons, imageAnnotation.boxes, labels)
-                globalId += 1
-                self.add_image(name, globalId, imagePath, annotation=imageAnnotation, image=image, mask=mask)
+                self.add_image(name, (setId, imageId), imagePath, annotation=imageAnnotation, image=image, mask=mask)
 
         self.prepare()
 
