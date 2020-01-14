@@ -39,11 +39,9 @@ def main():
     subsets = [('video_6', nodeConfig.frames6Dir, 4173), ('video_2', nodeConfig.frames2Dir, 1754)]
     for subsetName, framesPath, startFrame in subsets:
         imagesGen = Utils.imageFlow(paths=framesPath, ext='jpg', start=startFrame, stop=None, step=1)
-        for r in imagesGen:
-            print(r[0])
-        # outputImagesDir = os.path.join(nodeConfig.workingDir, detectAllDir, subsetName)
-        # trainer.saveDetectionsV2(imagesGen, inferenceConfig.BATCH_SIZE, pickleDir=None, imagesDir=outputImagesDir,
-        #                          withBoxes=True, onlyMasks=False)
+        outputImagesDir = os.path.join(nodeConfig.workingDir, detectAllDir, subsetName)
+        trainer.saveDetectionsV2(imagesGen, inferenceConfig.BATCH_SIZE, pickleDir=None, imagesDir=outputImagesDir,
+                                 withBoxes=True, onlyMasks=False)
 
 
 if __name__ == '__main__':
