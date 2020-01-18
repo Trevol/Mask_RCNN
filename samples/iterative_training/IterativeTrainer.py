@@ -27,6 +27,7 @@ class IterativeTrainer():
         self._trainableModel = None
         self._inferenceModel = None
         self.checkpointFileName = checkpointFileName
+        self.trainingSessionNumber = None
 
     def getTrainingDataset(self):
         dataset = self.trainingDataset
@@ -68,22 +69,35 @@ class IterativeTrainer():
                 self._inferenceModel.load_weights(lastWeights, by_name=True)
         return self._inferenceModel, lastWeights
 
+    def weightsNumber(self, weightsFile):
+        nameWithoutExt = os.path.splitext(os.path.basename(weightsFile))[0]
+        parts = nameWithoutExt.split('_')
+        if len(parts) == 0:
+            return None
+        weightsNum = parts[-1]
+
     def train(self, lr):
+        def logStage(stageNum, stageDesc):
+            print('\n')
+            print('#' * 40)
+            print(f'Training stage {stageNum}: {stageDesc}.')
+
         trainableModel = self.getTrainableModel(loadWeights=True)
         trainingDataset = self.getTrainingDataset()
         validationDataset = self.getValidationDataset()
 
         lr = lr or self.trainingConfig.LEARNING_RATE
-        print('Training stage 1: HEADS.')
 
+        logStage(1, 'HEADS')
         trainableModel.train(trainingDataset, validationDataset, lr,
                              epochs=trainableModel.epoch + 1, layers='heads', augmentation=self.augmentation)
 
-        print('Training stage 2: Finetune layers from ResNet stage 4 and up.')
+        logStage(2, 'Finetune layers from ResNet stage 4 and up')
         trainableModel.train(trainingDataset, validationDataset, lr,
                              epochs=trainableModel.epoch + 1, layers='4+',
                              augmentation=self.augmentation)
-        print('Training stage 3: Finetune all layers')
+
+        logStage(3, 'Finetune all layers')
         history = trainableModel.train(trainingDataset, validationDataset, lr / 10,
                                        epochs=trainableModel.epoch + 1, layers='all', augmentation=self.augmentation)
 
