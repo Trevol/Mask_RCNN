@@ -55,7 +55,7 @@ def prepareTrainerInput(frames6Dir, frames2Dir):
             'video',
             frames2Dir,  # dir or dirs where frames located - str or list<str>
             imAnnotations(labels, 'data/24_vid2_ arm_forceps_solder_pin-array.xml'),  # imageAnnotations
-            [0, 10, 1759, 1763, 2416, 3327]  # negative samples
+            [0, 10, 1759, 1778, 1763, 1804, 1867, 1962, 1992, 1994, 2016, 2416, 3327]  # negative samples
         )
     ]
 
