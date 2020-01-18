@@ -84,10 +84,10 @@ def main_train():
     seq = iaa.Sequential([
         iaa.Crop(px=(0, 16)),  # crop images from each side by 0 to 16px (randomly chosen)
         iaa.Fliplr(0.5),  # horizontally flip 50% of the images
-        iaa.GaussianBlur(sigma=(0, 1.5)),  # blur images with a sigma of 0 to 3.0
+        # iaa.GaussianBlur(sigma=(0, 1.5)),  # blur images with a sigma of 0 to 3.0
         iaa.Sharpen((0.0, 1.0)),
         iaa.Affine(rotate=(-10, 10)),
-        iaa.Affine(shear=(-10, 10)),
+        # iaa.Affine(shear=(-10, 10)),
         iaa.Affine(scale=(1, 1.1))
     ])
 
