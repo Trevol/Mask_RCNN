@@ -197,7 +197,7 @@ class IterativeTrainer():
 
         maxSessions = maxSessions or 1000000
         for i in range(1, maxSessions + 1):
-            print(f'Training session {i}/{maxSessions}')
+            print(f'\nTraining session {i}/{maxSessions}')
             self.train(lr)
             interactionResult = self.visualizePredictability()
             if interactionResult == 'esc':
