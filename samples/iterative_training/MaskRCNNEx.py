@@ -87,7 +87,7 @@ class MaskRCNNEx(MaskRCNN):
             callbacks += custom_callbacks
 
         # Train
-        log("\nStarting at epoch {}. LR={}\n".format(self.epoch, learning_rate))
+        # log("Starting at epoch {}. LR={}".format(self.epoch, learning_rate))
         self.set_trainable(layers, verbose=verbose)
         K.set_value(self.keras_model.optimizer.lr, learning_rate) # update learning rate
 

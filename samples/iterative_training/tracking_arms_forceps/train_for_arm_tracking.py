@@ -91,7 +91,7 @@ def main_train():
         iaa.Affine(scale=(1, 1.1))
     ])
 
-    checkpointFileName = "mask_rcnn_{name}_{epoch:04d}"
+    checkpointFileName = "mask_rcnn_{name}_{session:04d}"
     trainingConfig = TrackingArmsForcepsConfig(nodeConfig.IMAGES_PER_GPU)
     inferenceConfig = TrackingArmsForcepsInferenceConfig()
 
@@ -102,7 +102,7 @@ def main_train():
     args = parser.parse_args()
     startWithVisualization = args.start == 'vis'
     lr = args.lr
-    trainer.trainingLoop(startWithVisualization, lr)
+    trainer.trainingLoop(startWithVisualization, lr, args.max_sessions)
     # trainer.visualizePredictability()
 
 

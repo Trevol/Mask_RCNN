@@ -27,7 +27,7 @@ class IterativeTrainer():
         self._trainableModel = None
         self._inferenceModel = None
         self.checkpointFileName = checkpointFileName
-        self.trainingSessionNumber = None
+        self.trainingSession = None
 
     def getTrainingDataset(self):
         dataset = self.trainingDataset
@@ -46,18 +46,22 @@ class IterativeTrainer():
         return MaskRCNNEx.findLastWeightsInModelDir(self.modelDir, modelName)
 
     def getTrainableModel(self, loadWeights):
+        loadedWeights = None
+        fromModelDir = False
         if not self._trainableModel:
             self._trainableModel = MaskRCNNEx(mode='training', config=self.trainingConfig, model_dir=self.modelDir)
         if loadWeights:
-            lastWeights = self.findLastWeights()
-            if lastWeights:
-                self._trainableModel.load_weights(lastWeights)
+            loadedWeights = self.findLastWeights()
+            if loadedWeights:
+                self._trainableModel.load_weights(loadedWeights)
+                fromModelDir = True
             elif self.initialWeights:
                 # starts with initial weights
                 exclude = ["mrcnn_class_logits", "mrcnn_bbox_fc", "mrcnn_bbox", "mrcnn_mask"]
                 self._trainableModel.load_weights(self.initialWeights, by_name=True, exclude=exclude)
+                loadedWeights = self.initialWeights
 
-        return self._trainableModel
+        return self._trainableModel, loadedWeights, fromModelDir
 
     def getInferenceModel(self, loadLastWeights):
         if not self._inferenceModel:
@@ -69,47 +73,71 @@ class IterativeTrainer():
                 self._inferenceModel.load_weights(lastWeights, by_name=True)
         return self._inferenceModel, lastWeights
 
-    def weightsNumber(self, weightsFile):
+    def extractTrainingSessionNumber(self, weightsFile):
+        if weightsFile is None:
+            raise Exception('weightsFile is None')
         nameWithoutExt = os.path.splitext(os.path.basename(weightsFile))[0]
         parts = nameWithoutExt.split('_')
         if len(parts) == 0:
             return None
-        weightsNum = parts[-1]
+        if parts[-1].isdigit():
+            return int(parts[-1])
+        return None
 
     def train(self, lr):
-        def logStage(stageNum, stageDesc):
+        def logStage(stageNum, stageDesc, lr):
             print('\n')
             print('#' * 40)
-            print(f'Training stage {stageNum}: {stageDesc}.')
+            print(f'Training stage {stageNum}: {stageDesc}. Learning rate: {lr}')
 
-        trainableModel = self.getTrainableModel(loadWeights=True)
+        def initTraining():
+            if self.trainingSession is None:
+                # try load weights
+                # set session number if weights are from prev session (not initial)
+                trainableModel, loadedWeights, fromModelDir = self.getTrainableModel(loadWeights=True)
+                if fromModelDir:
+                    self.trainingSession = self.extractTrainingSessionNumber(loadedWeights) + 1
+                else:
+                    self.trainingSession = 1
+            else:
+                trainableModel, _, _ = self.getTrainableModel(loadWeights=False)
+
+            assert trainableModel
+            return trainableModel
+
+        trainableModel = initTraining()
         trainingDataset = self.getTrainingDataset()
         validationDataset = self.getValidationDataset()
 
         lr = lr or self.trainingConfig.LEARNING_RATE
 
-        logStage(1, 'HEADS')
+        logStage(1, 'HEADS', lr)
         trainableModel.train(trainingDataset, validationDataset, lr,
                              epochs=trainableModel.epoch + 1, layers='heads', augmentation=self.augmentation)
 
-        logStage(2, 'Finetune layers from ResNet stage 4 and up')
+        logStage(2, 'Finetune layers from ResNet stage 4 and up', lr)
         trainableModel.train(trainingDataset, validationDataset, lr,
                              epochs=trainableModel.epoch + 1, layers='4+',
                              augmentation=self.augmentation)
 
-        logStage(3, 'Finetune all layers')
-        history = trainableModel.train(trainingDataset, validationDataset, lr / 10,
+        lr = lr / 10
+        logStage(3, 'Finetune all layers', lr)
+        history = trainableModel.train(trainingDataset, validationDataset, lr,
                                        epochs=trainableModel.epoch + 1, layers='all', augmentation=self.augmentation)
 
         self.saveCheckpoint(trainableModel, history)
+        self.trainingSession += 1
 
     def saveCheckpoint(self, model, history):
+        assert self.trainingSession is not None
+
         allEpochsHistory = history.history
         lastEpochHistory = {k: v[-1] for k, v in allEpochsHistory.items()}
 
         name = model.config.NAME.lower()
         epoch = model.epoch
-        checkpointFile = self.checkpointFileName.format(name=name, epoch=epoch, **lastEpochHistory)
+        checkpointFile = self.checkpointFileName.format(name=name, epoch=epoch, session=self.trainingSession,
+                                                        **lastEpochHistory)
         checkpoint_path = os.path.join(model.log_dir, checkpointFile + '.h5')
         model.keras_model.save_weights(checkpoint_path, overwrite=True)
 
@@ -161,12 +189,15 @@ class IterativeTrainer():
         if verbose:
             print('Saved.', imageFile, masksFile)
 
-    def trainingLoop(self, startWithVisualization, lr=None):
+    def trainingLoop(self, startWithVisualization, lr=None, maxSessions=None):
         if startWithVisualization:
             interactionResult = self.visualizePredictability()
             if interactionResult == 'esc':
                 return
-        while True:
+
+        maxSessions = maxSessions or 1000000
+        for i in range(1, maxSessions + 1):
+            print(f'Training session {i}/{maxSessions}')
             self.train(lr)
             interactionResult = self.visualizePredictability()
             if interactionResult == 'esc':
