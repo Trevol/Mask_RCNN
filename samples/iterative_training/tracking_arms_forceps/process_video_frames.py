@@ -22,7 +22,7 @@ def getDetectionOutputDir(trainer):
     session = trainer.extractTrainingSessionNumber(trainer.findLastWeights())
     if session is None:
         raise Exception('session is None')
-    return f'detect_all/{now}_{session}'
+    return f'detect_all/{now}_{session:04d}'
 
 
 def main():
