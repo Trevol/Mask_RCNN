@@ -1,5 +1,10 @@
 import argparse
 import os
+import warnings
+
+import tensorflow as tf
+tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+
 from pathlib import Path
 from samples.iterative_training.Utils import Utils
 from samples.iterative_training.tracking_arms_forceps.TrackingArmsForcepsConfig import \
@@ -45,4 +50,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        main()
