@@ -85,10 +85,10 @@ class IterativeTrainer():
         return None
 
     def train(self, lr):
-        def logStage(stageNum, stageDesc, lr):
-            print('\n')
-            print('#' * 40)
-            print(f'Training stage {stageNum}: {stageDesc}. Learning rate: {lr}')
+        def logStage(stageNum, stageDesc, lr, startWithNewLine=False):
+            if startWithNewLine:
+                print('')
+            print('#' * 15, f'Training stage {stageNum}: {stageDesc}. Learning rate: {lr}')
 
         def initTraining():
             if self.trainingSession is None:
@@ -111,7 +111,7 @@ class IterativeTrainer():
 
         lr = lr or self.trainingConfig.LEARNING_RATE
 
-        logStage(1, 'HEADS', lr)
+        logStage(1, 'HEADS', lr, startWithNewLine=True)
         trainableModel.train(trainingDataset, validationDataset, lr,
                              epochs=trainableModel.epoch + 1, layers='heads', augmentation=self.augmentation)
 
