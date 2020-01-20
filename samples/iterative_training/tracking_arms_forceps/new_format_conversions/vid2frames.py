@@ -7,8 +7,8 @@ ConvertionConfig = namedtuple('ConvertionConfig', ['inputFile', 'outputDir'])
 
 
 def conversionConfigs():
-    yield ConvertionConfig(inputFile='/HDD_DATA/nfs_share/video_2.mp4', outputDir='/HDD_DATA/nfs_share/video_2')
-    yield ConvertionConfig(inputFile='/HDD_DATA/nfs_share/video_6.mp4', outputDir='/HDD_DATA/nfs_share/video_6')
+    yield ConvertionConfig(inputFile='/hdd/nfs_share/video_2.mp4', outputDir='/hdd/nfs_share/video_2')
+    yield ConvertionConfig(inputFile='/hdd/nfs_share/video_6.mp4', outputDir='/hdd/nfs_share/video_6')
 
 
 def main():

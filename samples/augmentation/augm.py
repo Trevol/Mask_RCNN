@@ -4,7 +4,7 @@ import numpy as np
 
 
 def imageAndMask():
-    image = cv2.imread('/HDD_DATA/nfs_share/frames_6/f_7761_517400.00_517.40.jpg')
+    image = cv2.imread('/hdd/nfs_share/frames_6/f_7761_517400.00_517.40.jpg')
     return [image, image]
 
 

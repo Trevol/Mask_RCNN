@@ -89,9 +89,9 @@ def saveOrShowDetections(save, saveStep, show, showInReverseOrder):
     modelDir = os.path.join(nodeConfig.workingDir, 'logs')
     trainer = IterativeTrainer(None, None, None, None, inferenceConfig, None, modelDir, False, classBGR=None)
 
-    # saveDir = '/home/trevol/HDD_DATA/TMP/frames/detect_all'
+    # saveDir = '/hdd/TMP/frames/detect_all'
     saveDir = os.path.join(nodeConfig.workingDir, 'detect_all')
-    # imagesDirs = ['/home/trevol/HDD_DATA/Computer_Vision_Task/frames_6']
+    # imagesDirs = ['/hdd/Computer_Vision_Task/frames_6']
     imagesDirs = [os.path.join(nodeConfig.workingDir, 'frames_6')]
     imageExt = 'jpg'
 
@@ -108,11 +108,11 @@ def saveVisualizedDetections():
     trainer = IterativeTrainer(None, None, None, None, inferenceConfig, None, modelDir=None, visualize=False,
                                classBGR=None)
 
-    # saveDir = '/home/trevol/HDD_DATA/TMP/frames/detect_all'
+    # saveDir = '/hdd/TMP/frames/detect_all'
     saveDir = os.path.join(nodeConfig.workingDir, 'detect_all')
-    # saveVisualizationToDir = '/home/trevol/HDD_DATA/TMP/frames/detect_all_visualization'
+    # saveVisualizationToDir = '/hdd/TMP/frames/detect_all_visualization'
     saveVisualizationToDir = os.path.join(nodeConfig.workingDir, 'detect_all_visualization')
-    # imagesDirs = ['/home/trevol/HDD_DATA/Computer_Vision_Task/frames_6']
+    # imagesDirs = ['/hdd/Computer_Vision_Task/frames_6']
     imagesDirs = [os.path.join(nodeConfig.workingDir, 'frames_6')]
     imageExt = 'jpg'
 

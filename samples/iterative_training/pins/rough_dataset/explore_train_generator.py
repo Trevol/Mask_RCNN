@@ -9,7 +9,7 @@ def getTrainDataset():
     trainXmlAnnotations = ['4_8_point_pin_train.xml', '6_8_point_pin_train_2.xml',
                            '7_8_point_pin_train_3.xml', '9_8_point_pin_train_4.xml',
                            '10_8_point_pin_train_5.xml']
-    imagesDir = '/home/trevol/HDD_DATA/Computer_Vision_Task/frames_6'
+    imagesDir = '/hdd/Computer_Vision_Task/frames_6'
     dataDir = './data'
     pjn = os.path.join
     trainLabelsAndImageAnnotations = [CvatAnnotation.parse(pjn(dataDir, x)) for x in trainXmlAnnotations]

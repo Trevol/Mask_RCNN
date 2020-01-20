@@ -2,11 +2,11 @@ import numpy as np
 import cv2
 
 
-# video = '/HDD_DATA/nfs_share/video_2.mp4'
+# video = '/hdd/nfs_share/video_2.mp4'
 # cap = cv2.VideoCapture(video)
 # cap.set(cv2.CAP_PROP_POS_FRAMES, 1700)
 
-video = '/HDD_DATA/nfs_share/video_6.mp4'
+video = '/hdd/nfs_share/video_6.mp4'
 cap = cv2.VideoCapture(video)
 cap.set(cv2.CAP_PROP_POS_FRAMES, 4700)
 

@@ -26,7 +26,7 @@ def drawOpticalFlow(srcImage, flow, color):
 
 
 def imageSequence():
-    pathTemplate = '/HDD_DATA/nfs_share/video_6/{num:06d}.jpg'
+    pathTemplate = '/hdd/nfs_share/video_6/{num:06d}.jpg'
     pos1 = 4650
     i = 0
     while True:

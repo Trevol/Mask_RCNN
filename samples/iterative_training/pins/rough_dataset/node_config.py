@@ -8,9 +8,9 @@ NodeConfig = namedtuple("NodeConfig", ["framesDir", 'initialWeights', "workingDi
 
 nodesConfigs = {
     "trevol-gpu-nb": NodeConfig(
-        framesDir="/HDD_DATA/nfs_share/frames_6",
-        initialWeights='/HDD_DATA/nfs_share/mask-rcnn/mask_rcnn_coco.h5',
-        workingDir="/HDD_DATA/nfs_share/mask-rcnn/pins/rough_dataset",
+        framesDir="/hdd/nfs_share/frames_6",
+        initialWeights='/hdd/nfs_share/mask-rcnn/mask_rcnn_coco.h5',
+        workingDir="/hdd/nfs_share/mask-rcnn/pins/rough_dataset",
         IMAGES_PER_GPU=1,
         visualize=True
     ),

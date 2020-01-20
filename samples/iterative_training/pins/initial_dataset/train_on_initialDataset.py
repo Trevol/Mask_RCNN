@@ -20,7 +20,7 @@ def prepareTrainerInput():
     trainingConfig = PinsConfig()
     inferenceConfig = PinsInferenceConfig()
 
-    imagesDir = '/home/trevol/HDD_DATA/Computer_Vision_Task/frames_6'
+    imagesDir = '/hdd/Computer_Vision_Task/frames_6'
     annotationFile1 = '1_TestSegmentation.xml'
     labels, imageAnnotations1 = CvatAnnotation.parse(annotationFile1)
     annotationFile2 = '2_TestSegmentation_2.xml'

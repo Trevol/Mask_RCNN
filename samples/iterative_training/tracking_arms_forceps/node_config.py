@@ -6,11 +6,11 @@ NodeConfig = namedtuple("NodeConfig",
 
 nodesConfigs = {
     "trevol-gpu-nb": NodeConfig(
-        frames6Dir="/HDD_DATA/nfs_share/video_6",
-        frames2Dir="/HDD_DATA/nfs_share/video_2",
-        initialWeights='/HDD_DATA/nfs_share/mask-rcnn/mask_rcnn_coco.h5',
-        # workingDir="/HDD_DATA/nfs_share/mask-rcnn/tracking_arms_forceps",
-        workingDir="/HDD_DATA/nfs_share/mask-rcnn/tracking_forceps_w_solder",
+        frames6Dir="/hdd/nfs_share/video_6",
+        frames2Dir="/hdd/nfs_share/video_2",
+        initialWeights='/hdd/nfs_share/mask-rcnn/mask_rcnn_coco.h5',
+        # workingDir="/hdd/nfs_share/mask-rcnn/tracking_arms_forceps",
+        workingDir="/hdd/nfs_share/mask-rcnn/tracking_forceps_w_solder",
         IMAGES_PER_GPU=1,
         visualize=True
     ),
