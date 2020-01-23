@@ -15,7 +15,7 @@ from samples.iterative_training.IterativeTrainer import IterativeTrainer
 
 class Args:
     parser = argparse.ArgumentParser()
-    parser.add_argument('--images_per_gpu', required=False, default=1, type=int)
+    parser.add_argument('-ipg', '--images_per_gpu', required=False, default=1, type=int)
 
     def __new__(cls, *args, **kwargs):
         return cls.parser.parse_args()

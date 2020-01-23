@@ -1,0 +1,22 @@
+calcOpticalFlowPyrLK
+
+просмотреть detect_all (параллельно)
+opencv trackers
+    https://github.com/Trevol/KCF-DSST-py
+    CSRT
+    KCF
+
+
+
+
+
+Поставить CLion
+- пробовать различные трекеры (С++ код)
+- попробовать скомпилировать opencv
+
+
+
+!!! cv.DISOpticalFlow_create - попробуем использовать его
+
+++++ cv.optflow.calcOpticalFlowSF очень медленно (возможно ли ускорение комбинацией параметров???)
+++++ morphologyEx https://docs.opencv.org/4.1.2/d9/d61/tutorial_py_morphological_ops.html
